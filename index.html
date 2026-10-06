@@ -54,16 +54,50 @@
   </form>
 </div>
 
-<script>
-  // Pega a placa informada na URL do QR Code (ex: site.com/?placa=ABC1D23)
+  <script>
+  // COLE AQUI A URL GERADA NA IMPLANTAÇÃO DO GOOGLE APPS SCRIPT
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwM3sTpWs0bR_sIi-rMKiT-9tD5qor0M9QMyIn-ZCz3iI_mvf-3w4yBg48of3RNTb7G/exec";
+
+  // Identifica a placa na URL (ex: site.com/?placa=ABC1D23)
   const urlParams = new URLSearchParams(window.location.search);
   const placa = urlParams.get('placa') || 'NÃO INFORMADA';
   document.getElementById('placa').value = placa;
 
   document.getElementById('checklistForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    alert('Checklist do veículo ' + placa + ' enviado com sucesso!');
-    // Aqui entra a integração para salvar no Google Sheets ou enviar via Webhook/WhatsApp
+    
+    const btn = e.target.querySelector('button');
+    btn.disabled = true;
+    btn.innerText = 'Enviando...';
+
+    const formData = {
+      placa: document.getElementById('placa').value,
+      motorista: document.getElementById('motorista').value,
+      km: document.getElementById('km').value,
+      oleo_agua: document.querySelector('[name="oleo_agua"]').value,
+      pneus: document.querySelector('[name="pneus"]').value,
+      luzes: document.querySelector('[name="luzes"]').value,
+      obs: document.getElementById('obs').value
+    };
+
+    fetch(SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData)
+    })
+    .then(() => {
+      alert('Checklist enviado e registrado na planilha com sucesso!');
+      document.getElementById('checklistForm').reset();
+      document.getElementById('placa').value = placa;
+      btn.disabled = false;
+      btn.innerText = 'Enviar Checklist';
+    })
+    .catch(error => {
+      alert('Erro ao enviar dados. Verifique a conexão.');
+      btn.disabled = false;
+      btn.innerText = 'Enviar Checklist';
+    });
   });
 </script>
 
