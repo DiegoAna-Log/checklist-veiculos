@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checklist de Veículo</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; padding: 20px; }
+    .card { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    h2 { color: #333; text-align: center; }
+    label { font-weight: bold; display: block; margin-top: 15px; }
+    input[type="text"], input[type="number"], select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    .item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+    button { width: 100%; background: #28a745; color: white; padding: 12px; border: none; border-radius: 4px; font-size: 16px; margin-top: 20px; cursor: pointer; }
+    button:hover { background: #218838; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <h2>Checklist Diário do Veículo</h2>
+  
+  <form id="checklistForm">
+    <label>Placa do Veículo:</label>
+    <input type="text" id="placa" name="placa" readonly style="background: #e9ecef;">
+
+    <label>Nome do Motorista:</label>
+    <input type="text" id="motorista" required placeholder="Digite seu nome completo">
+
+    <label>Quilometragem (KM):</label>
+    <input type="number" id="km" required placeholder="Ex: 145000">
+
+    <h3>Itens de Segurança</h3>
+    
+    <div class="item">
+      <span>Nível de Óleo e Água</span>
+      <select name="oleo_agua"><option value="OK">OK</option><option value="NOK">Avaria</option></select>
+    </div>
+    
+    <div class="item">
+      <span>Estado dos Pneus</span>
+      <select name="pneus"><option value="OK">OK</option><option value="NOK">Avaria</option></select>
+    </div>
+
+    <div class="item">
+      <span>Luzes e Faróis</span>
+      <select name="luzes"><option value="OK">OK</option><option value="NOK">Avaria</option></select>
+    </div>
+
+    <label>Observações / Avarias:</label>
+    <input type="text" id="obs" placeholder="Descreva caso haja algo errado">
+
+    <button type="submit">Enviar Checklist</button>
+  </form>
+</div>
+
+<script>
+  // Pega a placa informada na URL do QR Code (ex: site.com/?placa=ABC1D23)
+  const urlParams = new URLSearchParams(window.location.search);
+  const placa = urlParams.get('placa') || 'NÃO INFORMADA';
+  document.getElementById('placa').value = placa;
+
+  document.getElementById('checklistForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    alert('Checklist do veículo ' + placa + ' enviado com sucesso!');
+    // Aqui entra a integração para salvar no Google Sheets ou enviar via Webhook/WhatsApp
+  });
+</script>
+
+</body>
+</html>
