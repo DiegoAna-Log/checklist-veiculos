@@ -268,6 +268,9 @@
     <script>
         // 🔑 CONTROLE DE PALAVRA-PASSE
         const PALAVRA_PASSE_CORRETA = "Ana-Log2024"; // <-- Mude para a sua senha desejada!
+// 🔗 COLE A SUA URL DO GOOGLE APPS SCRIPT AQUI ABAIXO:
+const SCRIPT_URL = "SUA_URL_DO_APPS_SCRIPT_AQUI";
+        https://script.google.com/macros/s/AKfycbwM3sTpWs0bR_sIi-rMKiT-9tD5qor0M9QMyIn-ZCz3iI_mvf-3w4yBg48of3RNTb7G/exec
 
         document.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem("dashboard_autorizado") === "true") {
@@ -372,28 +375,45 @@
             });
         }
 
-        function handleVehicleSubmit(e) {
-            e.preventDefault();
-            const id = document.getElementById('vehicle-id').value;
-            const placa = document.getElementById('placa').value.toUpperCase();
-            const marca = document.getElementById('marca').value;
-            const modelo = document.getElementById('modelo').value;
-            const ano = parseInt(document.getElementById('ano').value);
-            const status = document.getElementById('status').value;
+        async function handleVehicleSubmit(e) {
+    e.preventDefault();
+    const id = document.getElementById('vehicle-id').value;
+    const placa = document.getElementById('placa').value.toUpperCase();
+    const marca = document.getElementById('marca').value;
+    const modelo = document.getElementById('modelo').value;
+    const ano = parseInt(document.getElementById('ano').value);
+    const status = document.getElementById('status').value;
 
-            if (id) {
-                const index = vehicles.findIndex(v => v.id == id);
-                if (index !== -1) {
-                    vehicles[index] = { id: parseInt(id), placa, marca, modelo, ano, status };
-                }
-            } else {
-                vehicles.push({ id: Date.now(), placa, marca, modelo, ano, status });
-            }
+    // Salva localmente na tela do gestor
+    const newVehicle = { id: Date.now(), placa, marca, modelo, ano, status };
+    vehicles.push(newVehicle);
+    saveVehiclesToStorage();
 
-            saveVehiclesToStorage();
-            resetForm();
-            switchTab('veiculos');
+    // Envia para a Planilha do Google Sheets
+    if (SCRIPT_URL && SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbwM3sTpWs0bR_sIi-rMKiT-9tD5qor0M9QMyIn-ZCz3iI_mvf-3w4yBg48of3RNTb7G/exec") {
+        try {
+            await fetch(SCRIPT_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    action: "cadastrarVeiculo",
+                    placa: placa,
+                    marca: marca,
+                    modelo: modelo,
+                    ano: ano,
+                    status: status
+                })
+            });
+            alert("Veículo salvo e enviado para a planilha Google com sucesso!");
+        } catch (error) {
+            console.error("Erro ao enviar para o Sheets:", error);
         }
+    }
+
+    resetForm();
+    switchTab('veiculos');
+}
 
         function resetForm() {
             document.getElementById('vehicle-form').reset();
