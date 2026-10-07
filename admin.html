@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel do Gestor - Controle de Frota</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js para Relatórios -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome para Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+
+    <div class="flex flex-col md:flex-row min-h-screen">
+
+        <!-- Sidebar / Navegação Lateral -->
+        <aside class="w-full md:w-64 bg-slate-900 text-white flex-shrink-0">
+            <div class="p-6 flex items-center justify-between border-b border-slate-800">
+                <h1 class="text-xl font-bold text-blue-400"><i class="fa-solid fa-truck-ramp-box mr-2"></i>GestãoFrota</h1>
+            </div>
+            <nav class="p-4 space-y-2">
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-chart-line w-6"></i> Dashboard
+                </button>
+                <button onclick="switchTab('cadastro')" id="btn-cadastro" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-car-plus w-6"></i> Cadastrar Veículo
+                </button>
+                <button onclick="switchTab('veiculos')" id="btn-veiculos" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-list w-6"></i> Veículos
+                </button>
+                <button onclick="switchTab('relatorios')" id="btn-relatorios" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-file-contract w-6"></i> Relatórios
+                </button>
+            </nav>
+        </aside>
+
+        <!-- Conteúdo Principal -->
+        <main class="flex-1 p-6 md:p-10 overflow-y-auto">
+
+            <!-- Cabeçalho -->
+            <header class="flex justify-between items-center pb-6 mb-6 border-b border-gray-200">
+                <h2 id="page-title" class="text-2xl font-bold text-gray-800">Dashboard</h2>
+                <div class="flex items-center space-x-3">
+                    <span class="text-sm font-medium text-gray-600">Admin Gestor</span>
+                    <div class="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold">AG</div>
+                </div>
+            </header>
+
+            <!-- ABA: DASHBOARD -->
+            <section id="tab-dashboard" class="tab-content space-y-6">
+                <!-- Cards Informativos -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-500 font-semibold uppercase">Total de Veículos</p>
+                            <p id="dash-total" class="text-3xl font-bold text-gray-800 mt-1">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-car"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-500 font-semibold uppercase">Disponíveis</p>
+                            <p id="dash-disponivel" class="text-3xl font-bold text-emerald-600 mt-1">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-circle-check"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-500 font-semibold uppercase">Em Uso</p>
+                            <p id="dash-emuso" class="text-3xl font-bold text-amber-600 mt-1">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-route"></i>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-gray-500 font-semibold uppercase">Em Manutenção</p>
+                            <p id="dash-manutencao" class="text-3xl font-bold text-rose-600 mt-1">0</p>
+                        </div>
+                        <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-lg flex items-center justify-center text-xl">
+                            <i class="fa-solid fa-wrench"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráficos Rápidos -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="text-lg font-bold text-gray-700 mb-4">Status da Frota</h3>
+                        <div class="h-64 flex justify-center">
+                            <canvas id="chartStatusDashboard"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h3 class="text-lg font-bold text-gray-700 mb-4">Veículos Cadastrados Recentes</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-gray-600">
+                                <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                                    <tr>
+                                        <th class="p-3">Placa</th>
+                                        <th class="p-3">Modelo</th>
+                                        <th class="p-3">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recent-vehicles-body">
+                                    <!-- Preenchido via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ABA: CADASTRO DE VEÍCULO -->
+            <section id="tab-cadastro" class="tab-content hidden">
+                <div class="max-w-2xl bg-white p-8 rounded-xl shadow-sm border border-gray-100">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6">Cadastrar Novo Veículo</h3>
+                    <form id="vehicle-form" onsubmit="handleVehicleSubmit(event)" class="space-y-5">
+                        <input type="hidden" id="vehicle-id">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Placa</label>
+                                <input type="text" id="placa" placeholder="ABC-1D23" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Marca</label>
+                                <input type="text" id="marca" placeholder="Ex: Chevrolet" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Modelo</label>
+                                <input type="text" id="modelo" placeholder="Ex: Onix 1.0" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Ano</label>
+                                <input type="number" id="ano" min="1990" max="2027" placeholder="Ex: 2023" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status Inicial</label>
+                            <select id="status" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <option value="Disponível">Disponível</option>
+                                <option value="Em Uso">Em Uso</option>
+                                <option value="Manutenção">Em Manutenção</option>
+                            </select>
+                        </div>
+
+                        <div class="flex justify-end space-x-3 pt-4">
+                            <button type="button" onclick="resetForm()" class="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition">Limpar</button>
+                            <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">Salvar Veículo</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <!-- ABA: Tabela de VEÍCULOS -->
+            <section id="tab-veiculos" class="tab-content hidden space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <input type="text" id="search-input" oninput="renderVehiclesTable()" placeholder="Buscar por placa, marca ou modelo..." class="w-full sm:w-80 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <button onclick="switchTab('cadastro')" class="w-full sm:w-auto px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        <i class="fa-solid fa-plus mr-1"></i> Novo Veículo
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-gray-50 text-xs font-semibold uppercase text-gray-500 border-b border-gray-100">
+                                <tr>
+                                    <th class="p-4">Placa</th>
+                                    <th class="p-4">Marca / Modelo</th>
+                                    <th class="p-4">Ano</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vehicles-table-body" class="divide-y divide-gray-100 text-sm text-gray-700">
+                                <!-- Preenchido via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ABA: RELATÓRIOS -->
+            <section id="tab-relatorios" class="tab-content hidden space-y-6">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-gray-800">Relatórios Gerenciais</h3>
+                    <button onclick="exportToCSV()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-sm font-medium">
+                        <i class="fa-solid fa-file-csv mr-2"></i> Exportar Dados (CSV)
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Gráfico de Distribuição por Marca -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h4 class="font-bold text-gray-700 mb-4">Frota por Marca</h4>
+                        <div class="h-64 flex justify-center">
+                            <canvas id="chartBrands"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico de Status Detalhado -->
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                        <h4 class="font-bold text-gray-700 mb-4">Disponibilidade Operacional</h4>
+                        <div class="h-64 flex justify-center">
+                            <canvas id="chartStatusReport"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- SCRIPT JAVASCRIPT -->
+    <script>
+        // Estado Global da Aplicação
+        let vehicles = JSON.parse(localStorage.getItem('gestao_frota_veiculos')) || [
+            { id: 1, placa: 'ABC-1234', marca: 'Chevrolet', modelo: 'Onix', ano: 2022, status: 'Disponível' },
+            { id: 2, placa: 'XYZ-5678', marca: 'Volkswagen', modelo: 'Gol', ano: 2021, status: 'Em Uso' },
+            { id: 3, placa: 'MNO-9012', marca: 'Fiat', modelo: 'Strada', ano: 2023, status: 'Manutenção' }
+        ];
+
+        let chartStatusDashInstance = null;
+        let chartBrandsInstance = null;
+        let chartStatusReportInstance = null;
+
+        // Inicialização
+        document.addEventListener('DOMContentLoaded', () => {
+            saveVehiclesToStorage();
+            switchTab('dashboard');
+        });
+
+        function saveVehiclesToStorage() {
+            localStorage.setItem('gestao_frota_veiculos', JSON.stringify(vehicles));
+        }
+
+        // Navegação entre Abas
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-slate-800', 'text-white', 'font-semibold');
+                btn.classList.add('text-gray-300');
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`btn-${tabId}`);
+            activeBtn.classList.add('bg-slate-800', 'text-white', 'font-semibold');
+
+            const titles = {
+                'dashboard': 'Dashboard General',
+                'cadastro': 'Cadastro de Veículo',
+                'veiculos': 'Veículos Cadastrados',
+                'relatorios': 'Relatórios & Métricas'
+            };
+            document.getElementById('page-title').innerText = titles[tabId];
+
+            if (tabId === 'dashboard') updateDashboard();
+            if (tabId === 'veiculos') renderVehiclesTable();
+            if (tabId === 'relatorios') renderReports();
+        }
+
+        // Atualizar Dashboard
+        function updateDashboard() {
+            const total = vehicles.length;
+            const disponivel = vehicles.filter(v => v.status === 'Disponível').length;
+            const emUso = vehicles.filter(v => v.status === 'Em Uso').length;
+            const manutencao = vehicles.filter(v => v.status === 'Manutenção').length;
+
+            document.getElementById('dash-total').innerText = total;
+            document.getElementById('dash-disponivel').innerText = disponivel;
+            document.getElementById('dash-emuso').innerText = emUso;
+            document.getElementById('dash-manutencao').innerText = manutencao;
+
+            // Renderizar Tabela Recente
+            const recentBody = document.getElementById('recent-vehicles-body');
+            recentBody.innerHTML = vehicles.slice(-5).reverse().map(v => `
+                <tr class="border-b border-gray-50">
+                    <td class="p-3 font-semibold">${v.placa}</td>
+                    <td class="p-3">${v.marca} ${v.modelo}</td>
+                    <td class="p-3">${getStatusBadge(v.status)}</td>
+                </tr>
+            `).join('');
+
+            // Gráfico do Dashboard
+            const ctx = document.getElementById('chartStatusDashboard').getContext('2d');
+            if (chartStatusDashInstance) chartStatusDashInstance.destroy();
+
+            chartStatusDashInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Disponível', 'Em Uso', 'Manutenção'],
+                    datasets: [{
+                        data: [disponivel, emUso, manutencao],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        // Submeter Formulário de Cadastro/Edição
+        function handleVehicleSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('vehicle-id').value;
+            const placa = document.getElementById('placa').value.toUpperCase();
+            const marca = document.getElementById('marca').value;
+            const modelo = document.getElementById('modelo').value;
+            const ano = parseInt(document.getElementById('ano').value);
+            const status = document.getElementById('status').value;
+
+            if (id) {
+                // Editar existente
+                const index = vehicles.findIndex(v => v.id == id);
+                if (index !== -1) {
+                    vehicles[index] = { id: parseInt(id), placa, marca, modelo, ano, status };
+                }
+            } else {
+                // Novo Cadastro
+                const newVehicle = {
+                    id: Date.now(),
+                    placa, marca, modelo, ano, status
+                };
+                vehicles.push(newVehicle);
+            }
+
+            saveVehiclesToStorage();
+            resetForm();
+            switchTab('veiculos');
+        }
+
+        function resetForm() {
+            document.getElementById('vehicle-form').reset();
+            document.getElementById('vehicle-id').value = '';
+        }
+
+        // Renderizar Tabela de Veículos
+        function renderVehiclesTable() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = vehicles.filter(v => 
+                v.placa.toLowerCase().includes(query) ||
+                v.marca.toLowerCase().includes(query) ||
+                v.modelo.toLowerCase().includes(query)
+            );
+
+            const tbody = document.getElementById('vehicles-table-body');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400">Nenhum veículo encontrado.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(v => `
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="p-4 font-bold text-gray-800">${v.placa}</td>
+                    <td class="p-4">${v.marca} - ${v.modelo}</td>
+                    <td class="p-4">${v.ano}</td>
+                    <td class="p-4">${getStatusBadge(v.status)}</td>
+                    <td class="p-4 text-center space-x-2">
+                        <button onclick="editVehicle(${v.id})" class="text-blue-600 hover:text-blue-800 p-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteVehicle(${v.id})" class="text-rose-600 hover:text-rose-800 p-1"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getStatusBadge(status) {
+            const styles = {
+                'Disponível': 'bg-emerald-100 text-emerald-800',
+                'Em Uso': 'bg-amber-100 text-amber-800',
+                'Manutenção': 'bg-rose-100 text-rose-800'
+            };
+            return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full ${styles[status] || 'bg-gray-100'}">${status}</span>`;
+        }
+
+        function editVehicle(id) {
+            const vehicle = vehicles.find(v => v.id === id);
+            if (!vehicle) return;
+
+            document.getElementById('vehicle-id').value = vehicle.id;
+            document.getElementById('placa').value = vehicle.placa;
+            document.getElementById('marca').value = vehicle.marca;
+            document.getElementById('modelo').value = vehicle.modelo;
+            document.getElementById('ano').value = vehicle.ano;
+            document.getElementById('status').value = vehicle.status;
+
+            switchTab('cadastro');
+        }
+
+        function deleteVehicle(id) {
+            if (confirm('Tem certeza que deseja excluir este veículo?')) {
+                vehicles = vehicles.filter(v => v.id !== id);
+                saveVehiclesToStorage();
+                renderVehiclesTable();
+            }
+        }
+
+        // Renderizar Gráficos de Relatórios
+        function renderReports() {
+            // Relatório de Marcas
+            const brandCounts = {};
+            vehicles.forEach(v => {
+                brandCounts[v.marca] = (brandCounts[v.marca] || 0) + 1;
+            });
+
+            const ctxBrands = document.getElementById('chartBrands').getContext('2d');
+            if (chartBrandsInstance) chartBrandsInstance.destroy();
+            chartBrandsInstance = new Chart(ctxBrands, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(brandCounts),
+                    datasets: [{
+                        label: 'Quantidade',
+                        data: Object.values(brandCounts),
+                        backgroundColor: '#3b82f6'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // Relatório de Status (Pie)
+            const disponivel = vehicles.filter(v => v.status === 'Disponível').length;
+            const emUso = vehicles.filter(v => v.status === 'Em Uso').length;
+            const manutencao = vehicles.filter(v => v.status === 'Manutenção').length;
+
+            const ctxStatus = document.getElementById('chartStatusReport').getContext('2d');
+            if (chartStatusReportInstance) chartStatusReportInstance.destroy();
+            chartStatusReportInstance = new Chart(ctxStatus, {
+                type: 'pie',
+                data: {
+                    labels: ['Disponível', 'Em Uso', 'Manutenção'],
+                    datasets: [{
+                        data: [disponivel, emUso, manutencao],
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        // Exportar Relatório para CSV
+        function exportToCSV() {
+            if (vehicles.length === 0) {
+                alert('Não há dados para exportar.');
+                return;
+            }
+
+            let csv = 'ID,Placa,Marca,Modelo,Ano,Status\n';
+            vehicles.forEach(v => {
+                csv += `${v.id},"${v.placa}","${v.marca}","${v.modelo}",${v.ano},"${v.status}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `relatorio_frota_${new Date().toISOString().slice(0,10)}.csv`;
+            link.click();
+        }
+    </script>
+</body>
+</html>
