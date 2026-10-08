@@ -81,7 +81,12 @@
 
             <!-- Cabeçalho -->
             <header class="flex justify-between items-center pb-6 mb-6 border-b border-gray-200">
-                <h2 id="page-title" class="text-2xl font-bold text-gray-800">Dashboard</h2>
+                <div class="flex items-center space-x-4">
+                    <h2 id="page-title" class="text-2xl font-bold text-gray-800">Dashboard</h2>
+                    <button onclick="carregarVeiculosDaPlanilha()" title="Recarregar Dados da Planilha" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                        <i class="fa-solid fa-rotate"></i> Atualizar
+                    </button>
+                </div>
                 <div class="flex items-center space-x-3">
                     <span class="text-sm font-medium text-gray-600">Admin Gestor</span>
                     <button onclick="logout()" title="Sair" class="w-10 h-10 rounded-full bg-slate-200 text-slate-700 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center font-bold transition">
@@ -200,7 +205,7 @@
 
                         <div class="flex justify-end space-x-3 pt-4">
                             <button type="button" onclick="resetForm()" class="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition">Limpar</button>
-                            <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">Salvar Veículo</button>
+                            <button type="submit" id="submit-btn" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">Salvar Veículo</button>
                         </div>
                     </form>
                 </div>
@@ -266,11 +271,9 @@
 
     <!-- SCRIPT JAVASCRIPT -->
     <script>
-        // 🔑 CONTROLE DE PALAVRA-PASSE
-        const PALAVRA_PASSE_CORRETA = "Ana-Log2024"; // <-- Mude para a sua senha desejada!
-// 🔗 COLE A SUA URL DO GOOGLE APPS SCRIPT AQUI ABAIXO:
-const SCRIPT_URL = "SUA_URL_DO_APPS_SCRIPT_AQUI";
-        https://script.google.com/macros/s/AKfycbwM3sTpWs0bR_sIi-rMKiT-9tD5qor0M9QMyIn-ZCz3iI_mvf-3w4yBg48of3RNTb7G/exec
+        // 🔑 CONFIGURAÇÃO DE PALAVRA-PASSE E ENDEREÇO DA PLANILHA
+        const PALAVRA_PASSE_CORRETA = "123456"; 
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwM3sTpWs0bR_sIi-rMKiT-9tD5qor0M9QMyIn-ZCz3iI_mvf-3w4yBg48of3RNTb7G/exec";
 
         document.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem("dashboard_autorizado") === "true") {
@@ -291,7 +294,7 @@ const SCRIPT_URL = "SUA_URL_DO_APPS_SCRIPT_AQUI";
         function liberarDashboard() {
             document.getElementById("lock-screen").style.display = "none";
             document.getElementById("dashboard-content").classList.remove("hidden");
-            saveVehiclesToStorage();
+            carregarVeiculosDaPlanilha();
             switchTab('dashboard');
         }
 
@@ -300,12 +303,8 @@ const SCRIPT_URL = "SUA_URL_DO_APPS_SCRIPT_AQUI";
             location.reload();
         }
 
-        // 🚗 LÓGICA DO PAINEL DE FROTA
-        let vehicles = JSON.parse(localStorage.getItem('gestao_frota_veiculos')) || [
-            { id: 1, placa: 'ABC-1234', marca: 'Chevrolet', modelo: 'Onix', ano: 2022, status: 'Disponível' },
-            { id: 2, placa: 'XYZ-5678', marca: 'Volkswagen', modelo: 'Gol', ano: 2021, status: 'Em Uso' },
-            { id: 3, placa: 'MNO-9012', marca: 'Fiat', modelo: 'Strada', ano: 2023, status: 'Manutenção' }
-        ];
+        // 🚗 LÓGICA DE DADOS DOS VEÍCULOS
+        let vehicles = JSON.parse(localStorage.getItem('gestao_frota_veiculos')) || [];
 
         let chartStatusDashInstance = null;
         let chartBrandsInstance = null;
@@ -313,6 +312,34 @@ const SCRIPT_URL = "SUA_URL_DO_APPS_SCRIPT_AQUI";
 
         function saveVehiclesToStorage() {
             localStorage.setItem('gestao_frota_veiculos', JSON.stringify(vehicles));
+        }
+
+        // 📥 BUSCAR VEÍCULOS DIRETO DA PLANILHA GOOGLE
+        async function carregarVeiculosDaPlanilha() {
+            if (!SCRIPT_URL) return;
+
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getVeiculos`);
+                const data = await response.json();
+                
+                if (Array.isArray(data) && data.length > 1) {
+                    // Descarta a primeira linha (cabeçalhos) e lê os veículos
+                    vehicles = data.slice(1).map((row, index) => ({
+                        id: index + 1,
+                        placa: row[0] || '',
+                        marca: row[1] || '',
+                        modelo: row[2] || '',
+                        ano: row[3] || '',
+                        status: row[4] || 'Disponível'
+                    }));
+                    
+                    saveVehiclesToStorage();
+                    updateDashboard();
+                    renderVehiclesTable();
+                }
+            } catch (error) {
+                console.error("Erro ao carregar veículos da planilha:", error);
+            }
         }
 
         function switchTab(tabId) {
@@ -375,45 +402,51 @@ const SCRIPT_URL = "SUA_URL_DO_APPS_SCRIPT_AQUI";
             });
         }
 
+        // 📤 ENVIAR VEÍCULO PARA A PLANILHA GOOGLE
         async function handleVehicleSubmit(e) {
-    e.preventDefault();
-    const id = document.getElementById('vehicle-id').value;
-    const placa = document.getElementById('placa').value.toUpperCase();
-    const marca = document.getElementById('marca').value;
-    const modelo = document.getElementById('modelo').value;
-    const ano = parseInt(document.getElementById('ano').value);
-    const status = document.getElementById('status').value;
+            e.preventDefault();
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.innerText = "A guardar...";
+            submitBtn.disabled = true;
 
-    // Salva localmente na tela do gestor
-    const newVehicle = { id: Date.now(), placa, marca, modelo, ano, status };
-    vehicles.push(newVehicle);
-    saveVehiclesToStorage();
+            const placa = document.getElementById('placa').value.toUpperCase();
+            const marca = document.getElementById('marca').value;
+            const modelo = document.getElementById('modelo').value;
+            const ano = parseInt(document.getElementById('ano').value);
+            const status = document.getElementById('status').value;
 
-    // Envia para a Planilha do Google Sheets
-    if (SCRIPT_URL && SCRIPT_URL !== "https://script.google.com/macros/s/AKfycbwM3sTpWs0bR_sIi-rMKiT-9tD5qor0M9QMyIn-ZCz3iI_mvf-3w4yBg48of3RNTb7G/exec") {
-        try {
-            await fetch(SCRIPT_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    action: "cadastrarVeiculo",
-                    placa: placa,
-                    marca: marca,
-                    modelo: modelo,
-                    ano: ano,
-                    status: status
-                })
-            });
-            alert("Veículo salvo e enviado para a planilha Google com sucesso!");
-        } catch (error) {
-            console.error("Erro ao enviar para o Sheets:", error);
+            // Salva na lista local para exibição rápida
+            const newVehicle = { id: Date.now(), placa, marca, modelo, ano, status };
+            vehicles.push(newVehicle);
+            saveVehiclesToStorage();
+
+            // Envia para o Google Sheets
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "cadastrarVeiculo",
+                        placa: placa,
+                        marca: marca,
+                        modelo: modelo,
+                        ano: ano,
+                        status: status
+                    })
+                });
+                alert("Veículo guardado com sucesso na planilha!");
+            } catch (error) {
+                console.error("Erro ao enviar:", error);
+                alert("Ocorreu um erro ao ligar à planilha, mas o veículo foi guardado localmente.");
+            } finally {
+                submitBtn.innerText = "Salvar Veículo";
+                submitBtn.disabled = false;
+                resetForm();
+                switchTab('veiculos');
+                carregarVeiculosDaPlanilha(); // Atualiza com os dados oficiais da planilha
+            }
         }
-    }
-
-    resetForm();
-    switchTab('veiculos');
-}
 
         function resetForm() {
             document.getElementById('vehicle-form').reset();
@@ -442,7 +475,6 @@ const SCRIPT_URL = "SUA_URL_DO_APPS_SCRIPT_AQUI";
                     <td class="p-4">${getStatusBadge(v.status)}</td>
                     <td class="p-4 text-center space-x-2">
                         <button onclick="editVehicle(${v.id})" class="text-blue-600 hover:text-blue-800 p-1"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button onclick="deleteVehicle(${v.id})" class="text-rose-600 hover:text-rose-800 p-1"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
@@ -471,18 +503,10 @@ const SCRIPT_URL = "SUA_URL_DO_APPS_SCRIPT_AQUI";
             switchTab('cadastro');
         }
 
-        function deleteVehicle(id) {
-            if (confirm('Tem certeza que deseja excluir este veículo?')) {
-                vehicles = vehicles.filter(v => v.id !== id);
-                saveVehiclesToStorage();
-                renderVehiclesTable();
-            }
-        }
-
         function renderReports() {
             const brandCounts = {};
             vehicles.forEach(v => {
-                brandCounts[v.marca] = (brandCounts[v.marca] || 0) + 1;
+                if (v.marca) brandCounts[v.marca] = (brandCounts[v.marca] || 0) + 1;
             });
 
             const ctxBrands = document.getElementById('chartBrands').getContext('2d');
