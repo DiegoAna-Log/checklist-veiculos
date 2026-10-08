@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel do Gestor - Controle de Frota</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js para Relatórios -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Font Awesome para Ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -23,6 +20,12 @@
             justify-content: center;
             z-index: 9999;
             padding: 1rem;
+        }
+        @media print {
+            body * { visibility: hidden; }
+            #qr-modal-content, #qr-modal-content * { visibility: visible; }
+            #qr-modal-content { position: absolute; left: 0; top: 0; width: 100%; text-align: center; }
+            #qr-modal-actions { display: none; }
         }
     </style>
 </head>
@@ -54,7 +57,7 @@
     <!-- 2. PAINEL PRINCIPAL -->
     <div id="dashboard-content" class="hidden flex flex-col md:flex-row min-h-screen">
 
-        <!-- Sidebar / Navegação Lateral -->
+        <!-- Sidebar -->
         <aside class="w-full md:w-64 bg-slate-800 border-r border-slate-700 flex-shrink-0">
             <div class="p-6 flex items-center justify-between border-b border-slate-700">
                 <h1 class="text-xl font-bold text-blue-400"><i class="fa-solid fa-truck-ramp-box mr-2"></i>GestãoFrota</h1>
@@ -63,11 +66,14 @@
                 <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition">
                     <i class="fa-solid fa-chart-line w-6"></i> Dashboard
                 </button>
-                <button onclick="switchTab('cadastro')" id="btn-cadastro" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition">
-                    <i class="fa-solid fa-car-plus w-6"></i> Cadastrar / Editar
+                <button onclick="switchTab('checklists')" id="btn-checklists" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition">
+                    <i class="fa-solid fa-clipboard-list w-6"></i> Checklists Recebidos
                 </button>
                 <button onclick="switchTab('veiculos')" id="btn-veiculos" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition">
                     <i class="fa-solid fa-list w-6"></i> Lista de Veículos
+                </button>
+                <button onclick="switchTab('cadastro')" id="btn-cadastro" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition">
+                    <i class="fa-solid fa-car-plus w-6"></i> Cadastrar / Editar
                 </button>
                 <button onclick="switchTab('relatorios')" id="btn-relatorios" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition">
                     <i class="fa-solid fa-file-contract w-6"></i> Relatórios
@@ -78,11 +84,10 @@
         <!-- Conteúdo Principal -->
         <main class="flex-1 p-6 md:p-10 overflow-y-auto">
 
-            <!-- Cabeçalho -->
             <header class="flex justify-between items-center pb-6 mb-6 border-b border-slate-700">
                 <div class="flex items-center space-x-4">
                     <h2 id="page-title" class="text-2xl font-bold text-white">Dashboard Geral</h2>
-                    <button onclick="carregarVeiculosDaPlanilha()" title="Recarregar Dados da Planilha" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                    <button onclick="carregarDados()" title="Recarregar Dados" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
                         <i class="fa-solid fa-rotate"></i> Atualizar
                     </button>
                 </div>
@@ -143,17 +148,18 @@
                         </div>
                     </div>
                     <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
-                        <h3 class="text-lg font-bold text-white mb-4">Veículos Cadastrados</h3>
+                        <h3 class="text-lg font-bold text-white mb-4">Últimos Checklists Registrados</h3>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-sm text-slate-300">
                                 <thead class="bg-slate-900 text-xs uppercase text-slate-400">
                                     <tr>
+                                        <th class="p-3">Data</th>
                                         <th class="p-3">Placa</th>
-                                        <th class="p-3">Modelo</th>
-                                        <th class="p-3">Status</th>
+                                        <th class="p-3">Motorista</th>
+                                        <th class="p-3">KM</th>
                                     </tr>
                                 </thead>
-                                <tbody id="recent-vehicles-body" class="divide-y divide-slate-700">
+                                <tbody id="recent-checklists-body" class="divide-y divide-slate-700">
                                     <!-- Preenchido via JS -->
                                 </tbody>
                             </table>
@@ -162,12 +168,71 @@
                 </div>
             </section>
 
-            <!-- ABA: CADASTRO / EDIÇÃO DE VEÍCULO -->
+            <!-- ABA: CHECKLISTS RECEBIDOS (NOVA!) -->
+            <section id="tab-checklists" class="tab-content hidden space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-800 p-4 rounded-xl border border-slate-700">
+                    <input type="text" id="search-checklists" oninput="renderChecklistsTable()" placeholder="Buscar por placa ou motorista..." class="w-full sm:w-80 p-2.5 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <span class="text-xs text-slate-400">Total de Registros: <strong id="total-checklists-count" class="text-white">0</strong></span>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-900 text-xs font-semibold uppercase text-slate-400 border-b border-slate-700">
+                                <tr>
+                                    <th class="p-4">Data/Hora</th>
+                                    <th class="p-4">Placa</th>
+                                    <th class="p-4">Motorista</th>
+                                    <th class="p-4">KM</th>
+                                    <th class="p-4">Óleo/Água</th>
+                                    <th class="p-4">Pneus</th>
+                                    <th class="p-4">Luzes</th>
+                                    <th class="p-4">Observação</th>
+                                    <th class="p-4 text-center">Foto</th>
+                                </tr>
+                            </thead>
+                            <tbody id="checklists-table-body" class="divide-y divide-slate-700 text-sm text-slate-200">
+                                <!-- Preenchido via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ABA: TABELA DE VEÍCULOS (Com botão QR Code!) -->
+            <section id="tab-veiculos" class="tab-content hidden space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-800 p-4 rounded-xl border border-slate-700">
+                    <input type="text" id="search-input" oninput="renderVehiclesTable()" placeholder="Buscar por placa, marca ou modelo..." class="w-full sm:w-80 p-2.5 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <button onclick="resetForm(); switchTab('cadastro');" class="w-full sm:w-auto px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                        <i class="fa-solid fa-plus mr-1"></i> Novo Veículo
+                    </button>
+                </div>
+
+                <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-slate-900 text-xs font-semibold uppercase text-slate-400 border-b border-slate-700">
+                                <tr>
+                                    <th class="p-4">Placa</th>
+                                    <th class="p-4">Marca / Modelo</th>
+                                    <th class="p-4">Ano</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vehicles-table-body" class="divide-y divide-slate-700 text-sm text-slate-200">
+                                <!-- Preenchido via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ABA: CADASTRO / EDIÇÃO -->
             <section id="tab-cadastro" class="tab-content hidden">
                 <div class="max-w-2xl bg-slate-800 p-8 rounded-xl border border-slate-700">
-                    <h3 id="form-title" class="text-xl font-bold text-white mb-6">Cadastrar / Editar Veículo</h3>
+                    <h3 class="text-xl font-bold text-white mb-6">Cadastrar / Editar Veículo</h3>
                     <form id="vehicle-form" onsubmit="handleVehicleSubmit(event)" class="space-y-5">
-                        
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Placa</label>
@@ -207,35 +272,6 @@
                 </div>
             </section>
 
-            <!-- ABA: TABELA DE VEÍCULOS -->
-            <section id="tab-veiculos" class="tab-content hidden space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-800 p-4 rounded-xl border border-slate-700">
-                    <input type="text" id="search-input" oninput="renderVehiclesTable()" placeholder="Buscar por placa, marca ou modelo..." class="w-full sm:w-80 p-2.5 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <button onclick="resetForm(); switchTab('cadastro');" class="w-full sm:w-auto px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                        <i class="fa-solid fa-plus mr-1"></i> Novo Veículo
-                    </button>
-                </div>
-
-                <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
-                            <thead class="bg-slate-900 text-xs font-semibold uppercase text-slate-400 border-b border-slate-700">
-                                <tr>
-                                    <th class="p-4">Placa</th>
-                                    <th class="p-4">Marca / Modelo</th>
-                                    <th class="p-4">Ano</th>
-                                    <th class="p-4">Status</th>
-                                    <th class="p-4 text-center">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody id="vehicles-table-body" class="divide-y divide-slate-700 text-sm text-slate-200">
-                                <!-- Preenchido via JS -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </section>
-
             <!-- ABA: RELATÓRIOS -->
             <section id="tab-relatorios" class="tab-content hidden space-y-6">
                 <div class="flex justify-between items-center">
@@ -265,12 +301,35 @@
         </main>
     </div>
 
+    <!-- MODAL DE EXIBIÇÃO DE QR CODE -->
+    <div id="qr-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
+        <div id="qr-modal-content" class="bg-slate-800 p-8 rounded-2xl border border-slate-700 max-w-sm w-full text-center">
+            <h3 class="text-xl font-bold text-white mb-1">Adesivo QR Code</h3>
+            <p id="qr-placa-title" class="text-blue-400 font-bold text-lg mb-4">ABC-1234</p>
+            
+            <div class="bg-white p-4 rounded-xl inline-block shadow-lg mb-4">
+                <img id="qr-img" src="" alt="QR Code" class="w-48 h-48 mx-auto">
+            </div>
+            <p class="text-xs text-slate-400 mb-6">Cole este QR Code no interior do veículo para acesso direto ao checklist.</p>
+            
+            <div id="qr-modal-actions" class="flex gap-3">
+                <button onclick="window.print()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition">
+                    <i class="fa-solid fa-print mr-1"></i> Imprimir
+                </button>
+                <button onclick="closeQrModal()" class="py-2.5 px-4 bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold rounded-lg transition">
+                    Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- SCRIPT JAVASCRIPT -->
     <script>
         const PALAVRA_PASSE_CORRETA = "123456"; 
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwM3sTpWs0bR_sIi-rMKiT-9tD5qor0M9QMyIn-ZCz3iI_mvf-3w4yBg48of3RNTb7G/exec";
 
-        let vehicles = []; // Apenas carrega da planilha (sem localStorage)
+        let vehicles = [];
+        let checklists = [];
 
         let chartStatusDashInstance = null;
         let chartBrandsInstance = null;
@@ -295,7 +354,7 @@
         function liberarDashboard() {
             document.getElementById("lock-screen").style.display = "none";
             document.getElementById("dashboard-content").classList.remove("hidden");
-            carregarVeiculosDaPlanilha();
+            carregarDados();
             switchTab('dashboard');
         }
 
@@ -304,16 +363,18 @@
             location.reload();
         }
 
-        // 📥 BUSCAR VEÍCULOS DIRETO DA PLANILHA GOOGLE
+        async function carregarDados() {
+            await Promise.all([carregarVeiculosDaPlanilha(), carregarChecklistsDaPlanilha()]);
+            updateDashboard();
+        }
+
         async function carregarVeiculosDaPlanilha() {
             if (!SCRIPT_URL) return;
-
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=getVeiculos`);
                 const data = await response.json();
                 
                 if (Array.isArray(data) && data.length > 1) {
-                    // Mapeia sem criar duplicados por placa
                     const mapaPlacas = new Map();
                     data.slice(1).forEach(row => {
                         const placa = (row[0] || '').toString().trim().toUpperCase();
@@ -327,17 +388,43 @@
                             });
                         }
                     });
-                    
                     vehicles = Array.from(mapaPlacas.values());
-                    updateDashboard();
                     renderVehiclesTable();
                 } else {
                     vehicles = [];
-                    updateDashboard();
                     renderVehiclesTable();
                 }
             } catch (error) {
-                console.error("Erro ao carregar veículos da planilha:", error);
+                console.error("Erro ao carregar veículos:", error);
+            }
+        }
+
+        async function carregarChecklistsDaPlanilha() {
+            if (!SCRIPT_URL) return;
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getChecklists`);
+                const data = await response.json();
+                
+                if (Array.isArray(data) && data.length > 1) {
+                    checklists = data.slice(1).map(row => ({
+                        data: row[0] ? new Date(row[0]).toLocaleString('pt-BR') : '',
+                        placa: row[1] || '',
+                        motorista: row[2] || '',
+                        km: row[3] || '',
+                        oleo_agua: row[4] || '',
+                        pneus: row[5] || '',
+                        luzes: row[6] || '',
+                        obs: row[7] || '',
+                        foto: row[8] || ''
+                    })).reverse();
+                    
+                    renderChecklistsTable();
+                } else {
+                    checklists = [];
+                    renderChecklistsTable();
+                }
+            } catch (error) {
+                console.error("Erro ao carregar checklists:", error);
             }
         }
 
@@ -354,13 +441,15 @@
 
             const titles = {
                 'dashboard': 'Dashboard Geral',
-                'cadastro': 'Cadastrar / Editar Veículo',
+                'checklists': 'Acompanhamento de Checklists',
                 'veiculos': 'Lista de Veículos',
+                'cadastro': 'Cadastrar / Editar Veículo',
                 'relatorios': 'Relatórios & Métricas'
             };
             document.getElementById('page-title').innerText = titles[tabId];
 
             if (tabId === 'dashboard') updateDashboard();
+            if (tabId === 'checklists') renderChecklistsTable();
             if (tabId === 'veiculos') renderVehiclesTable();
             if (tabId === 'relatorios') renderReports();
         }
@@ -376,12 +465,13 @@
             document.getElementById('dash-emuso').innerText = emUso;
             document.getElementById('dash-manutencao').innerText = manutencao;
 
-            const recentBody = document.getElementById('recent-vehicles-body');
-            recentBody.innerHTML = vehicles.slice(-5).reverse().map(v => `
+            const recentBody = document.getElementById('recent-checklists-body');
+            recentBody.innerHTML = checklists.slice(0, 5).map(c => `
                 <tr class="border-b border-slate-700">
-                    <td class="p-3 font-semibold text-white">${v.placa}</td>
-                    <td class="p-3">${v.marca} ${v.modelo}</td>
-                    <td class="p-3">${getStatusBadge(v.status)}</td>
+                    <td class="p-3 text-xs text-slate-400">${c.data}</td>
+                    <td class="p-3 font-semibold text-white">${c.placa}</td>
+                    <td class="p-3">${c.motorista}</td>
+                    <td class="p-3">${c.km} km</td>
                 </tr>
             `).join('');
 
@@ -401,11 +491,61 @@
             });
         }
 
-        // 📤 ENVIAR / EDITAR VEÍCULO NA PLANILHA
+        function renderChecklistsTable() {
+            const query = document.getElementById('search-checklists').value.toLowerCase();
+            const filtered = checklists.filter(c => 
+                c.placa.toLowerCase().includes(query) ||
+                c.motorista.toLowerCase().includes(query)
+            );
+
+            document.getElementById('total-checklists-count').innerText = filtered.length;
+            const tbody = document.getElementById('checklists-table-body');
+            
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400">Nenhum checklist registrado.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(c => `
+                <tr class="hover:bg-slate-800/80 transition border-b border-slate-700">
+                    <td class="p-4 text-xs text-slate-400 whitespace-nowrap">${c.data}</td>
+                    <td class="p-4 font-bold text-blue-400">${c.placa}</td>
+                    <td class="p-4 font-medium">${c.motorista}</td>
+                    <td class="p-4">${c.km} km</td>
+                    <td class="p-4">${getStatusBadge(c.oleo_agua)}</td>
+                    <td class="p-4">${getStatusBadge(c.pneus)}</td>
+                    <td class="p-4">${getStatusBadge(c.luzes)}</td>
+                    <td class="p-4 text-xs max-w-xs truncate">${c.obs || '-'}</td>
+                    <td class="p-4 text-center">
+                        ${c.foto && c.foto.startsWith('http') ? 
+                            `<a href="${c.foto}" target="_blank" class="text-xs bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 border border-blue-500/40 px-2.5 py-1 rounded-lg transition"><i class="fa-solid fa-image mr-1"></i> Foto</a>` : 
+                            '<span class="text-slate-500 text-xs">-</span>'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openQrModal(placa) {
+            const modal = document.getElementById('qr-modal');
+            const urlTarget = `https://diegoana-log.github.io/checklist-veiculos/?placa=${encodeURIComponent(placa)}`;
+            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(urlTarget)}`;
+
+            document.getElementById('qr-placa-title').innerText = `Veículo ${placa}`;
+            document.getElementById('qr-img').src = qrApiUrl;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeQrModal() {
+            const modal = document.getElementById('qr-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
         async function handleVehicleSubmit(e) {
             e.preventDefault();
             const submitBtn = document.getElementById('submit-btn');
-            submitBtn.innerText = "A salvar na planilha...";
+            submitBtn.innerText = "A salvar...";
             submitBtn.disabled = true;
 
             const placa = document.getElementById('placa').value.toUpperCase().trim();
@@ -429,39 +569,33 @@
                     })
                 });
 
-                alert("✅ Veículo salvo com sucesso na planilha!");
+                alert("✅ Veículo salvo!");
                 resetForm();
-                await carregarVeiculosDaPlanilha();
+                await carregarDados();
                 switchTab('veiculos');
             } catch (error) {
-                console.error("Erro ao enviar:", error);
-                alert("❌ Erro ao ligar à planilha.");
+                alert("❌ Erro ao salvar.");
             } finally {
                 submitBtn.innerText = "Salvar na Planilha";
                 submitBtn.disabled = false;
             }
         }
 
-        // 🗑️ EXCLUIR VEÍCULO DIRETO NA PLANILHA
         async function deleteVehicle(placa) {
-            if (!confirm(`Tem certeza que deseja excluir o veículo de placa ${placa} da planilha?`)) return;
+            if (!confirm(`Excluir o veículo ${placa}?`)) return;
 
             try {
                 await fetch(SCRIPT_URL, {
                     method: "POST",
                     mode: "no-cors",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        action: "excluirVeiculo",
-                        placa: placa
-                    })
+                    body: JSON.stringify({ action: "excluirVeiculo", placa: placa })
                 });
 
-                alert(`✅ Veículo ${placa} excluído com sucesso!`);
-                await carregarVeiculosDaPlanilha();
+                alert(`✅ Veículo ${placa} excluído!`);
+                await carregarDados();
             } catch (error) {
-                alert("❌ Erro ao excluir veículo da planilha.");
-                console.error(error);
+                alert("❌ Erro ao excluir.");
             }
         }
 
@@ -492,7 +626,7 @@
 
             const tbody = document.getElementById('vehicles-table-body');
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Nenhum veículo encontrado na planilha.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Nenhum veículo cadastrado.</td></tr>`;
                 return;
             }
 
@@ -503,6 +637,7 @@
                     <td class="p-4">${v.ano}</td>
                     <td class="p-4">${getStatusBadge(v.status)}</td>
                     <td class="p-4 text-center space-x-3">
+                        <button onclick="openQrModal('${v.placa}')" title="Gerar QR Code" class="text-emerald-400 hover:text-emerald-300"><i class="fa-solid fa-qrcode"></i> QR Code</button>
                         <button onclick="editVehicle('${v.placa}')" title="Editar" class="text-blue-400 hover:text-blue-300"><i class="fa-solid fa-pen-to-square"></i></button>
                         <button onclick="deleteVehicle('${v.placa}')" title="Excluir" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button>
                     </td>
@@ -511,14 +646,16 @@
         }
 
         function getStatusBadge(status) {
-            const styles = {
-                'Disponível': 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
-                'Em Uso': 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
-                'Em Rota': 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
-                'Manutenção': 'bg-rose-500/20 text-rose-400 border border-rose-500/30',
-                'Em Manutenção': 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
-            };
-            return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full ${styles[status] || 'bg-slate-700 text-slate-300'}">${status}</span>`;
+            const isCritical = ['Crítico', 'Furado/Danificado', 'Manutenção', 'Em Manutenção'].includes(status);
+            const isWarning = ['Atenção', 'Gastos', 'Lâmpada Queimada', 'Em Uso', 'Em Rota'].includes(status);
+            
+            if (isCritical) {
+                return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30">${status}</span>`;
+            }
+            if (isWarning) {
+                return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">${status}</span>`;
+            }
+            return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">${status || 'OK'}</span>`;
         }
 
         function renderReports() {
@@ -533,11 +670,7 @@
                 type: 'bar',
                 data: {
                     labels: Object.keys(brandCounts),
-                    datasets: [{
-                        label: 'Quantidade',
-                        data: Object.values(brandCounts),
-                        backgroundColor: '#3b82f6'
-                    }]
+                    datasets: [{ label: 'Quantidade', data: Object.values(brandCounts), backgroundColor: '#3b82f6' }]
                 },
                 options: { responsive: true, maintainAspectRatio: false }
             });
@@ -552,30 +685,27 @@
                 type: 'pie',
                 data: {
                     labels: ['Disponível', 'Em Uso / Rota', 'Manutenção'],
-                    datasets: [{
-                        data: [disponivel, emUso, manutencao],
-                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
-                    }]
+                    datasets: [{ data: [disponivel, emUso, manutencao], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }]
                 },
                 options: { responsive: true, maintainAspectRatio: false }
             });
         }
 
         function exportToCSV() {
-            if (vehicles.length === 0) {
-                alert('Não há dados para exportar.');
+            if (checklists.length === 0) {
+                alert('Não há checklists para exportar.');
                 return;
             }
 
-            let csv = 'Placa,Marca,Modelo,Ano,Status\n';
-            vehicles.forEach(v => {
-                csv += `"${v.placa}","${v.marca}","${v.modelo}",${v.ano},"${v.status}"\n`;
+            let csv = 'Data,Placa,Motorista,KM,Oleo_Agua,Pneus,Luzes,Observacao,Foto\n';
+            checklists.forEach(c => {
+                csv += `"${c.data}","${c.placa}","${c.motorista}",${c.km},"${c.oleo_agua}","${c.pneus}","${c.luzes}","${c.obs}","${c.foto}"\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `relatorio_frota_${new Date().toISOString().slice(0,10)}.csv`;
+            link.download = `relatorio_checklists_${new Date().toISOString().slice(0,10)}.csv`;
             link.click();
         }
     </script>
