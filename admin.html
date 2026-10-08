@@ -12,7 +12,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Estilos da Tela de Bloqueio */
         #lock-screen {
             position: fixed;
             inset: 0;
@@ -27,7 +26,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-100 font-sans leading-normal tracking-normal">
+<body class="bg-slate-900 text-gray-100 font-sans leading-normal tracking-normal min-h-screen">
 
     <!-- 1. TELA DE ACESSO COM PALAVRA-PASSE -->
     <div id="lock-screen">
@@ -35,8 +34,8 @@
             <div class="w-16 h-16 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
                 <i class="fa-solid fa-lock"></i>
             </div>
-            <h2 class="text-2xl font-bold text-white mb-2">Área Restrita</h2>
-            <p class="text-slate-400 text-sm mb-6">Digite a palavra-passe do gestor para aceder ao painel.</p>
+            <h2 class="text-2xl font-bold text-white mb-2">Área Restrita do Gestor</h2>
+            <p class="text-slate-400 text-sm mb-6">Digite a palavra-passe para aceder ao painel.</p>
             
             <div class="space-y-4">
                 <input type="password" id="password-input" placeholder="Digite a palavra-passe" 
@@ -52,25 +51,25 @@
         </div>
     </div>
 
-    <!-- 2. PAINEL PRINCIPAL (Oculto até autenticar) -->
+    <!-- 2. PAINEL PRINCIPAL -->
     <div id="dashboard-content" class="hidden flex flex-col md:flex-row min-h-screen">
 
         <!-- Sidebar / Navegação Lateral -->
-        <aside class="w-full md:w-64 bg-slate-900 text-white flex-shrink-0">
-            <div class="p-6 flex items-center justify-between border-b border-slate-800">
+        <aside class="w-full md:w-64 bg-slate-800 border-r border-slate-700 flex-shrink-0">
+            <div class="p-6 flex items-center justify-between border-b border-slate-700">
                 <h1 class="text-xl font-bold text-blue-400"><i class="fa-solid fa-truck-ramp-box mr-2"></i>GestãoFrota</h1>
             </div>
             <nav class="p-4 space-y-2">
-                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800 hover:text-white transition">
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition">
                     <i class="fa-solid fa-chart-line w-6"></i> Dashboard
                 </button>
-                <button onclick="switchTab('cadastro')" id="btn-cadastro" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800 hover:text-white transition">
-                    <i class="fa-solid fa-car-plus w-6"></i> Cadastrar Veículo
+                <button onclick="switchTab('cadastro')" id="btn-cadastro" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition">
+                    <i class="fa-solid fa-car-plus w-6"></i> Cadastrar / Editar
                 </button>
-                <button onclick="switchTab('veiculos')" id="btn-veiculos" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800 hover:text-white transition">
-                    <i class="fa-solid fa-list w-6"></i> Veículos
+                <button onclick="switchTab('veiculos')" id="btn-veiculos" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition">
+                    <i class="fa-solid fa-list w-6"></i> Lista de Veículos
                 </button>
-                <button onclick="switchTab('relatorios')" id="btn-relatorios" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-gray-300 hover:bg-slate-800 hover:text-white transition">
+                <button onclick="switchTab('relatorios')" id="btn-relatorios" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition">
                     <i class="fa-solid fa-file-contract w-6"></i> Relatórios
                 </button>
             </nav>
@@ -80,16 +79,16 @@
         <main class="flex-1 p-6 md:p-10 overflow-y-auto">
 
             <!-- Cabeçalho -->
-            <header class="flex justify-between items-center pb-6 mb-6 border-b border-gray-200">
+            <header class="flex justify-between items-center pb-6 mb-6 border-b border-slate-700">
                 <div class="flex items-center space-x-4">
-                    <h2 id="page-title" class="text-2xl font-bold text-gray-800">Dashboard</h2>
-                    <button onclick="carregarVeiculosDaPlanilha()" title="Recarregar Dados da Planilha" class="text-sm bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
+                    <h2 id="page-title" class="text-2xl font-bold text-white">Dashboard Geral</h2>
+                    <button onclick="carregarVeiculosDaPlanilha()" title="Recarregar Dados da Planilha" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
                         <i class="fa-solid fa-rotate"></i> Atualizar
                     </button>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <span class="text-sm font-medium text-gray-600">Admin Gestor</span>
-                    <button onclick="logout()" title="Sair" class="w-10 h-10 rounded-full bg-slate-200 text-slate-700 hover:bg-rose-100 hover:text-rose-600 flex items-center justify-center font-bold transition">
+                    <span class="text-sm font-medium text-slate-400">Admin Gestor</span>
+                    <button onclick="logout()" title="Sair" class="w-10 h-10 rounded-full bg-slate-800 text-slate-300 hover:bg-rose-900/50 hover:text-rose-400 flex items-center justify-center font-bold transition border border-slate-700">
                         <i class="fa-solid fa-right-from-bracket"></i>
                     </button>
                 </div>
@@ -97,66 +96,64 @@
 
             <!-- ABA: DASHBOARD -->
             <section id="tab-dashboard" class="tab-content space-y-6">
-                <!-- Cards Informativos -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 flex items-center justify-between">
                         <div>
-                            <p class="text-xs text-gray-500 font-semibold uppercase">Total de Veículos</p>
-                            <p id="dash-total" class="text-3xl font-bold text-gray-800 mt-1">0</p>
+                            <p class="text-xs text-slate-400 font-semibold uppercase">Total de Veículos</p>
+                            <p id="dash-total" class="text-3xl font-bold text-white mt-1">0</p>
                         </div>
-                        <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center text-xl">
+                        <div class="w-12 h-12 bg-blue-500/20 text-blue-400 rounded-lg flex items-center justify-center text-xl">
                             <i class="fa-solid fa-car"></i>
                         </div>
                     </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 flex items-center justify-between">
                         <div>
-                            <p class="text-xs text-gray-500 font-semibold uppercase">Disponíveis</p>
-                            <p id="dash-disponivel" class="text-3xl font-bold text-emerald-600 mt-1">0</p>
+                            <p class="text-xs text-slate-400 font-semibold uppercase">Disponíveis</p>
+                            <p id="dash-disponivel" class="text-3xl font-bold text-emerald-400 mt-1">0</p>
                         </div>
-                        <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center text-xl">
+                        <div class="w-12 h-12 bg-emerald-500/20 text-emerald-400 rounded-lg flex items-center justify-center text-xl">
                             <i class="fa-solid fa-circle-check"></i>
                         </div>
                     </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 flex items-center justify-between">
                         <div>
-                            <p class="text-xs text-gray-500 font-semibold uppercase">Em Uso</p>
-                            <p id="dash-emuso" class="text-3xl font-bold text-amber-600 mt-1">0</p>
+                            <p class="text-xs text-slate-400 font-semibold uppercase">Em Uso / Em Rota</p>
+                            <p id="dash-emuso" class="text-3xl font-bold text-amber-400 mt-1">0</p>
                         </div>
-                        <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center text-xl">
+                        <div class="w-12 h-12 bg-amber-500/20 text-amber-400 rounded-lg flex items-center justify-center text-xl">
                             <i class="fa-solid fa-route"></i>
                         </div>
                     </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex items-center justify-between">
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 flex items-center justify-between">
                         <div>
-                            <p class="text-xs text-gray-500 font-semibold uppercase">Em Manutenção</p>
-                            <p id="dash-manutencao" class="text-3xl font-bold text-rose-600 mt-1">0</p>
+                            <p class="text-xs text-slate-400 font-semibold uppercase">Em Manutenção</p>
+                            <p id="dash-manutencao" class="text-3xl font-bold text-rose-400 mt-1">0</p>
                         </div>
-                        <div class="w-12 h-12 bg-rose-50 text-rose-600 rounded-lg flex items-center justify-center text-xl">
+                        <div class="w-12 h-12 bg-rose-500/20 text-rose-400 rounded-lg flex items-center justify-center text-xl">
                             <i class="fa-solid fa-wrench"></i>
                         </div>
                     </div>
                 </div>
 
-                <!-- Gráficos Rápidos -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h3 class="text-lg font-bold text-gray-700 mb-4">Status da Frota</h3>
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                        <h3 class="text-lg font-bold text-white mb-4">Status da Frota</h3>
                         <div class="h-64 flex justify-center">
                             <canvas id="chartStatusDashboard"></canvas>
                         </div>
                     </div>
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h3 class="text-lg font-bold text-gray-700 mb-4">Veículos Cadastrados Recentes</h3>
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                        <h3 class="text-lg font-bold text-white mb-4">Veículos Cadastrados</h3>
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm text-gray-600">
-                                <thead class="bg-gray-50 text-xs uppercase text-gray-500">
+                            <table class="w-full text-left text-sm text-slate-300">
+                                <thead class="bg-slate-900 text-xs uppercase text-slate-400">
                                     <tr>
                                         <th class="p-3">Placa</th>
                                         <th class="p-3">Modelo</th>
                                         <th class="p-3">Status</th>
                                     </tr>
                                 </thead>
-                                <tbody id="recent-vehicles-body">
+                                <tbody id="recent-vehicles-body" class="divide-y divide-slate-700">
                                     <!-- Preenchido via JS -->
                                 </tbody>
                             </table>
@@ -165,65 +162,64 @@
                 </div>
             </section>
 
-            <!-- ABA: CADASTRO DE VEÍCULO -->
+            <!-- ABA: CADASTRO / EDIÇÃO DE VEÍCULO -->
             <section id="tab-cadastro" class="tab-content hidden">
-                <div class="max-w-2xl bg-white p-8 rounded-xl shadow-sm border border-gray-100">
-                    <h3 class="text-xl font-bold text-gray-800 mb-6">Cadastrar Novo Veículo</h3>
+                <div class="max-w-2xl bg-slate-800 p-8 rounded-xl border border-slate-700">
+                    <h3 id="form-title" class="text-xl font-bold text-white mb-6">Cadastrar / Editar Veículo</h3>
                     <form id="vehicle-form" onsubmit="handleVehicleSubmit(event)" class="space-y-5">
-                        <input type="hidden" id="vehicle-id">
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Placa</label>
-                                <input type="text" id="placa" placeholder="ABC-1D23" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase">
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Placa</label>
+                                <input type="text" id="placa" placeholder="ABC-1D23" required class="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Marca</label>
-                                <input type="text" id="marca" placeholder="Ex: Chevrolet" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Marca</label>
+                                <input type="text" id="marca" placeholder="Ex: Chevrolet" required class="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Modelo</label>
-                                <input type="text" id="modelo" placeholder="Ex: Onix 1.0" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Modelo</label>
+                                <input type="text" id="modelo" placeholder="Ex: Onix 1.0" required class="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
                             </div>
                             <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Ano</label>
-                                <input type="number" id="ano" min="1990" max="2027" placeholder="Ex: 2023" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Ano</label>
+                                <input type="number" id="ano" min="1990" max="2027" placeholder="Ex: 2023" required class="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
                             </div>
                         </div>
 
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Status Inicial</label>
-                            <select id="status" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Status do Veículo</label>
+                            <select id="status" class="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
                                 <option value="Disponível">Disponível</option>
-                                <option value="Em Uso">Em Uso</option>
+                                <option value="Em Uso">Em Uso / Em Rota</option>
                                 <option value="Manutenção">Em Manutenção</option>
                             </select>
                         </div>
 
                         <div class="flex justify-end space-x-3 pt-4">
-                            <button type="button" onclick="resetForm()" class="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50 transition">Limpar</button>
-                            <button type="submit" id="submit-btn" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">Salvar Veículo</button>
+                            <button type="button" onclick="resetForm()" class="px-5 py-2.5 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-700 transition">Limpar</button>
+                            <button type="submit" id="submit-btn" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">Salvar na Planilha</button>
                         </div>
                     </form>
                 </div>
             </section>
 
-            <!-- ABA: Tabela de VEÍCULOS -->
+            <!-- ABA: TABELA DE VEÍCULOS -->
             <section id="tab-veiculos" class="tab-content hidden space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
-                    <input type="text" id="search-input" oninput="renderVehiclesTable()" placeholder="Buscar por placa, marca ou modelo..." class="w-full sm:w-80 p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <button onclick="switchTab('cadastro')" class="w-full sm:w-auto px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-800 p-4 rounded-xl border border-slate-700">
+                    <input type="text" id="search-input" oninput="renderVehiclesTable()" placeholder="Buscar por placa, marca ou modelo..." class="w-full sm:w-80 p-2.5 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                    <button onclick="resetForm(); switchTab('cadastro');" class="w-full sm:w-auto px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                         <i class="fa-solid fa-plus mr-1"></i> Novo Veículo
                     </button>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
-                            <thead class="bg-gray-50 text-xs font-semibold uppercase text-gray-500 border-b border-gray-100">
+                            <thead class="bg-slate-900 text-xs font-semibold uppercase text-slate-400 border-b border-slate-700">
                                 <tr>
                                     <th class="p-4">Placa</th>
                                     <th class="p-4">Marca / Modelo</th>
@@ -232,7 +228,7 @@
                                     <th class="p-4 text-center">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="vehicles-table-body" class="divide-y divide-gray-100 text-sm text-gray-700">
+                            <tbody id="vehicles-table-body" class="divide-y divide-slate-700 text-sm text-slate-200">
                                 <!-- Preenchido via JS -->
                             </tbody>
                         </table>
@@ -243,22 +239,22 @@
             <!-- ABA: RELATÓRIOS -->
             <section id="tab-relatorios" class="tab-content hidden space-y-6">
                 <div class="flex justify-between items-center">
-                    <h3 class="text-xl font-bold text-gray-800">Relatórios Gerenciais</h3>
+                    <h3 class="text-xl font-bold text-white">Relatórios Gerenciais</h3>
                     <button onclick="exportToCSV()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-sm font-medium">
                         <i class="fa-solid fa-file-csv mr-2"></i> Exportar Dados (CSV)
                     </button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h4 class="font-bold text-gray-700 mb-4">Frota por Marca</h4>
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                        <h4 class="font-bold text-white mb-4">Frota por Marca</h4>
                         <div class="h-64 flex justify-center">
                             <canvas id="chartBrands"></canvas>
                         </div>
                     </div>
 
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                        <h4 class="font-bold text-gray-700 mb-4">Disponibilidade Operacional</h4>
+                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                        <h4 class="font-bold text-white mb-4">Disponibilidade Operacional</h4>
                         <div class="h-64 flex justify-center">
                             <canvas id="chartStatusReport"></canvas>
                         </div>
@@ -271,9 +267,14 @@
 
     <!-- SCRIPT JAVASCRIPT -->
     <script>
-        // 🔑 CONFIGURAÇÃO DE PALAVRA-PASSE E ENDEREÇO DA PLANILHA
         const PALAVRA_PASSE_CORRETA = "123456"; 
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwM3sTpWs0bR_sIi-rMKiT-9tD5qor0M9QMyIn-ZCz3iI_mvf-3w4yBg48of3RNTb7G/exec";
+
+        let vehicles = []; // Apenas carrega da planilha (sem localStorage)
+
+        let chartStatusDashInstance = null;
+        let chartBrandsInstance = null;
+        let chartStatusReportInstance = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             if (sessionStorage.getItem("dashboard_autorizado") === "true") {
@@ -303,17 +304,6 @@
             location.reload();
         }
 
-        // 🚗 LÓGICA DE DADOS DOS VEÍCULOS
-        let vehicles = JSON.parse(localStorage.getItem('gestao_frota_veiculos')) || [];
-
-        let chartStatusDashInstance = null;
-        let chartBrandsInstance = null;
-        let chartStatusReportInstance = null;
-
-        function saveVehiclesToStorage() {
-            localStorage.setItem('gestao_frota_veiculos', JSON.stringify(vehicles));
-        }
-
         // 📥 BUSCAR VEÍCULOS DIRETO DA PLANILHA GOOGLE
         async function carregarVeiculosDaPlanilha() {
             if (!SCRIPT_URL) return;
@@ -323,17 +313,26 @@
                 const data = await response.json();
                 
                 if (Array.isArray(data) && data.length > 1) {
-                    // Descarta a primeira linha (cabeçalhos) e lê os veículos
-                    vehicles = data.slice(1).map((row, index) => ({
-                        id: index + 1,
-                        placa: row[0] || '',
-                        marca: row[1] || '',
-                        modelo: row[2] || '',
-                        ano: row[3] || '',
-                        status: row[4] || 'Disponível'
-                    }));
+                    // Mapeia sem criar duplicados por placa
+                    const mapaPlacas = new Map();
+                    data.slice(1).forEach(row => {
+                        const placa = (row[0] || '').toString().trim().toUpperCase();
+                        if (placa) {
+                            mapaPlacas.set(placa, {
+                                placa: placa,
+                                marca: row[1] || '',
+                                modelo: row[2] || '',
+                                ano: row[3] || '',
+                                status: row[4] || 'Disponível'
+                            });
+                        }
+                    });
                     
-                    saveVehiclesToStorage();
+                    vehicles = Array.from(mapaPlacas.values());
+                    updateDashboard();
+                    renderVehiclesTable();
+                } else {
+                    vehicles = [];
                     updateDashboard();
                     renderVehiclesTable();
                 }
@@ -345,18 +344,18 @@
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('bg-slate-800', 'text-white', 'font-semibold');
-                btn.classList.add('text-gray-300');
+                btn.classList.remove('bg-slate-700', 'text-white', 'font-semibold');
+                btn.classList.add('text-slate-300');
             });
 
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             const activeBtn = document.getElementById(`btn-${tabId}`);
-            if (activeBtn) activeBtn.classList.add('bg-slate-800', 'text-white', 'font-semibold');
+            if (activeBtn) activeBtn.classList.add('bg-slate-700', 'text-white', 'font-semibold');
 
             const titles = {
                 'dashboard': 'Dashboard Geral',
-                'cadastro': 'Cadastro de Veículo',
-                'veiculos': 'Veículos Cadastrados',
+                'cadastro': 'Cadastrar / Editar Veículo',
+                'veiculos': 'Lista de Veículos',
                 'relatorios': 'Relatórios & Métricas'
             };
             document.getElementById('page-title').innerText = titles[tabId];
@@ -369,8 +368,8 @@
         function updateDashboard() {
             const total = vehicles.length;
             const disponivel = vehicles.filter(v => v.status === 'Disponível').length;
-            const emUso = vehicles.filter(v => v.status === 'Em Uso').length;
-            const manutencao = vehicles.filter(v => v.status === 'Manutenção').length;
+            const emUso = vehicles.filter(v => v.status === 'Em Uso' || v.status === 'Em Rota').length;
+            const manutencao = vehicles.filter(v => v.status === 'Manutenção' || v.status === 'Em Manutenção').length;
 
             document.getElementById('dash-total').innerText = total;
             document.getElementById('dash-disponivel').innerText = disponivel;
@@ -379,8 +378,8 @@
 
             const recentBody = document.getElementById('recent-vehicles-body');
             recentBody.innerHTML = vehicles.slice(-5).reverse().map(v => `
-                <tr class="border-b border-gray-50">
-                    <td class="p-3 font-semibold">${v.placa}</td>
+                <tr class="border-b border-slate-700">
+                    <td class="p-3 font-semibold text-white">${v.placa}</td>
                     <td class="p-3">${v.marca} ${v.modelo}</td>
                     <td class="p-3">${getStatusBadge(v.status)}</td>
                 </tr>
@@ -402,25 +401,19 @@
             });
         }
 
-        // 📤 ENVIAR VEÍCULO PARA A PLANILHA GOOGLE
+        // 📤 ENVIAR / EDITAR VEÍCULO NA PLANILHA
         async function handleVehicleSubmit(e) {
             e.preventDefault();
             const submitBtn = document.getElementById('submit-btn');
-            submitBtn.innerText = "A guardar...";
+            submitBtn.innerText = "A salvar na planilha...";
             submitBtn.disabled = true;
 
-            const placa = document.getElementById('placa').value.toUpperCase();
+            const placa = document.getElementById('placa').value.toUpperCase().trim();
             const marca = document.getElementById('marca').value;
             const modelo = document.getElementById('modelo').value;
             const ano = parseInt(document.getElementById('ano').value);
             const status = document.getElementById('status').value;
 
-            // Salva na lista local para exibição rápida
-            const newVehicle = { id: Date.now(), placa, marca, modelo, ano, status };
-            vehicles.push(newVehicle);
-            saveVehiclesToStorage();
-
-            // Envia para o Google Sheets
             try {
                 await fetch(SCRIPT_URL, {
                     method: "POST",
@@ -435,22 +428,58 @@
                         status: status
                     })
                 });
-                alert("Veículo guardado com sucesso na planilha!");
+
+                alert("✅ Veículo salvo com sucesso na planilha!");
+                resetForm();
+                await carregarVeiculosDaPlanilha();
+                switchTab('veiculos');
             } catch (error) {
                 console.error("Erro ao enviar:", error);
-                alert("Ocorreu um erro ao ligar à planilha, mas o veículo foi guardado localmente.");
+                alert("❌ Erro ao ligar à planilha.");
             } finally {
-                submitBtn.innerText = "Salvar Veículo";
+                submitBtn.innerText = "Salvar na Planilha";
                 submitBtn.disabled = false;
-                resetForm();
-                switchTab('veiculos');
-                carregarVeiculosDaPlanilha(); // Atualiza com os dados oficiais da planilha
             }
+        }
+
+        // 🗑️ EXCLUIR VEÍCULO DIRETO NA PLANILHA
+        async function deleteVehicle(placa) {
+            if (!confirm(`Tem certeza que deseja excluir o veículo de placa ${placa} da planilha?`)) return;
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        action: "excluirVeiculo",
+                        placa: placa
+                    })
+                });
+
+                alert(`✅ Veículo ${placa} excluído com sucesso!`);
+                await carregarVeiculosDaPlanilha();
+            } catch (error) {
+                alert("❌ Erro ao excluir veículo da planilha.");
+                console.error(error);
+            }
+        }
+
+        function editVehicle(placa) {
+            const vehicle = vehicles.find(v => v.placa === placa);
+            if (!vehicle) return;
+
+            document.getElementById('placa').value = vehicle.placa;
+            document.getElementById('marca').value = vehicle.marca;
+            document.getElementById('modelo').value = vehicle.modelo;
+            document.getElementById('ano').value = vehicle.ano;
+            document.getElementById('status').value = vehicle.status;
+
+            switchTab('cadastro');
         }
 
         function resetForm() {
             document.getElementById('vehicle-form').reset();
-            document.getElementById('vehicle-id').value = '';
         }
 
         function renderVehiclesTable() {
@@ -463,18 +492,19 @@
 
             const tbody = document.getElementById('vehicles-table-body');
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-gray-400">Nenhum veículo encontrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-slate-400">Nenhum veículo encontrado na planilha.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = filtered.map(v => `
-                <tr class="hover:bg-gray-50 transition">
-                    <td class="p-4 font-bold text-gray-800">${v.placa}</td>
+                <tr class="hover:bg-slate-800/80 transition border-b border-slate-700">
+                    <td class="p-4 font-bold text-white">${v.placa}</td>
                     <td class="p-4">${v.marca} - ${v.modelo}</td>
                     <td class="p-4">${v.ano}</td>
                     <td class="p-4">${getStatusBadge(v.status)}</td>
-                    <td class="p-4 text-center space-x-2">
-                        <button onclick="editVehicle(${v.id})" class="text-blue-600 hover:text-blue-800 p-1"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <td class="p-4 text-center space-x-3">
+                        <button onclick="editVehicle('${v.placa}')" title="Editar" class="text-blue-400 hover:text-blue-300"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="deleteVehicle('${v.placa}')" title="Excluir" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
@@ -482,25 +512,13 @@
 
         function getStatusBadge(status) {
             const styles = {
-                'Disponível': 'bg-emerald-100 text-emerald-800',
-                'Em Uso': 'bg-amber-100 text-amber-800',
-                'Manutenção': 'bg-rose-100 text-rose-800'
+                'Disponível': 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
+                'Em Uso': 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
+                'Em Rota': 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
+                'Manutenção': 'bg-rose-500/20 text-rose-400 border border-rose-500/30',
+                'Em Manutenção': 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
             };
-            return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full ${styles[status] || 'bg-gray-100'}">${status}</span>`;
-        }
-
-        function editVehicle(id) {
-            const vehicle = vehicles.find(v => v.id === id);
-            if (!vehicle) return;
-
-            document.getElementById('vehicle-id').value = vehicle.id;
-            document.getElementById('placa').value = vehicle.placa;
-            document.getElementById('marca').value = vehicle.marca;
-            document.getElementById('modelo').value = vehicle.modelo;
-            document.getElementById('ano').value = vehicle.ano;
-            document.getElementById('status').value = vehicle.status;
-
-            switchTab('cadastro');
+            return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full ${styles[status] || 'bg-slate-700 text-slate-300'}">${status}</span>`;
         }
 
         function renderReports() {
@@ -525,15 +543,15 @@
             });
 
             const disponivel = vehicles.filter(v => v.status === 'Disponível').length;
-            const emUso = vehicles.filter(v => v.status === 'Em Uso').length;
-            const manutencao = vehicles.filter(v => v.status === 'Manutenção').length;
+            const emUso = vehicles.filter(v => v.status === 'Em Uso' || v.status === 'Em Rota').length;
+            const manutencao = vehicles.filter(v => v.status === 'Manutenção' || v.status === 'Em Manutenção').length;
 
             const ctxStatus = document.getElementById('chartStatusReport').getContext('2d');
             if (chartStatusReportInstance) chartStatusReportInstance.destroy();
             chartStatusReportInstance = new Chart(ctxStatus, {
                 type: 'pie',
                 data: {
-                    labels: ['Disponível', 'Em Uso', 'Manutenção'],
+                    labels: ['Disponível', 'Em Uso / Rota', 'Manutenção'],
                     datasets: [{
                         data: [disponivel, emUso, manutencao],
                         backgroundColor: ['#10b981', '#f59e0b', '#ef4444']
@@ -549,9 +567,9 @@
                 return;
             }
 
-            let csv = 'ID,Placa,Marca,Modelo,Ano,Status\n';
+            let csv = 'Placa,Marca,Modelo,Ano,Status\n';
             vehicles.forEach(v => {
-                csv += `${v.id},"${v.placa}","${v.marca}","${v.modelo}",${v.ano},"${v.status}"\n`;
+                csv += `"${v.placa}","${v.marca}","${v.modelo}",${v.ano},"${v.status}"\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
