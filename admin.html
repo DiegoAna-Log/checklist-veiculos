@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel do Gestor - Controle de Frota</title>
+    <title>Painel do Gestor - Ana-Log Frota</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -12,7 +12,7 @@
         #lock-screen {
             position: fixed;
             inset: 0;
-            background-color: #0f172a;
+            background-color: #020617;
             color: #ffffff;
             display: flex;
             flex-direction: column;
@@ -29,25 +29,23 @@
         }
     </style>
 </head>
-<body class="bg-slate-900 text-gray-100 font-sans leading-normal tracking-normal min-h-screen">
+<body class="bg-slate-950 text-gray-100 font-sans leading-normal tracking-normal min-h-screen">
 
     <!-- 1. TELA DE ACESSO -->
     <div id="lock-screen">
-        <div class="bg-slate-800 p-8 rounded-2xl shadow-2xl max-w-md w-full border border-slate-700 text-center">
-            <div class="w-16 h-16 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                <i class="fa-solid fa-lock"></i>
-            </div>
-            <h2 class="text-2xl font-bold text-white mb-2">Área Restrita do Gestor</h2>
-            <p class="text-slate-400 text-sm mb-6">Digite a palavra-passe para aceder ao painel.</p>
+        <div class="bg-slate-900 p-8 rounded-2xl shadow-2xl max-w-md w-full border border-slate-800 text-center">
+            <img src="./logo.png" alt="Ana-Log" class="h-20 mx-auto mb-4 object-contain bg-white/90 p-2 rounded-lg" onerror="this.style.display='none'">
+            <h2 class="text-2xl font-bold text-white mb-1">Painel do Gestor</h2>
+            <p class="text-orange-400 text-xs font-bold uppercase tracking-widest mb-6">Ana-Log • Entregando Compromisso</p>
             
             <div class="space-y-4">
                 <input type="password" id="password-input" placeholder="Digite a palavra-passe" 
                        onkeypress="if(event.key === 'Enter') checkPassword()"
-                       class="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-lg focus:outline-none focus:border-blue-500 text-center text-lg">
+                       class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:outline-none focus:border-orange-500 text-center text-lg">
                 
                 <p id="error-msg" class="text-rose-400 text-sm hidden font-medium">Palavra-passe incorreta! Tente novamente.</p>
                 
-                <button onclick="checkPassword()" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition">
+                <button onclick="checkPassword()" class="w-full py-3 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg transition shadow-lg shadow-orange-950/50">
                     Aceder ao Painel
                 </button>
             </div>
@@ -57,26 +55,27 @@
     <!-- 2. PAINEL PRINCIPAL -->
     <div id="dashboard-content" class="hidden flex flex-col md:flex-row min-h-screen">
 
-        <!-- Sidebar -->
-        <aside class="w-full md:w-64 bg-slate-800 border-r border-slate-700 flex-shrink-0">
-            <div class="p-6 flex items-center justify-between border-b border-slate-700">
-                <h1 class="text-xl font-bold text-blue-400"><i class="fa-solid fa-truck-ramp-box mr-2"></i>GestãoFrota</h1>
+        <!-- Sidebar Lateral -->
+        <aside class="w-full md:w-64 bg-slate-900 border-r border-slate-800 flex-shrink-0">
+            <div class="p-6 flex flex-col items-center border-b border-slate-800 text-center">
+                <img src="./logo.png" alt="Ana-Log" class="h-12 mb-2 object-contain bg-white/90 p-1.5 rounded-lg" onerror="this.style.display='none'">
+                <span class="text-xs font-bold text-orange-400 tracking-wider uppercase">Gestão de Frota</span>
             </div>
             <nav class="p-4 space-y-2">
-                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition">
-                    <i class="fa-solid fa-chart-line w-6"></i> Dashboard
+                <button onclick="switchTab('dashboard')" id="btn-dashboard" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-chart-line w-6 text-orange-500"></i> Dashboard
                 </button>
-                <button onclick="switchTab('checklists')" id="btn-checklists" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition">
-                    <i class="fa-solid fa-clipboard-list w-6"></i> Checklists Recebidos
+                <button onclick="switchTab('checklists')" id="btn-checklists" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-clipboard-list w-6 text-orange-500"></i> Checklists Recebidos
                 </button>
-                <button onclick="switchTab('veiculos')" id="btn-veiculos" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition">
-                    <i class="fa-solid fa-list w-6"></i> Lista de Veículos
+                <button onclick="switchTab('veiculos')" id="btn-veiculos" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-list w-6 text-orange-500"></i> Lista de Veículos
                 </button>
-                <button onclick="switchTab('cadastro')" id="btn-cadastro" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition">
-                    <i class="fa-solid fa-car-plus w-6"></i> Cadastrar / Editar
+                <button onclick="switchTab('cadastro')" id="btn-cadastro" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-car-plus w-6 text-orange-500"></i> Cadastrar / Editar
                 </button>
-                <button onclick="switchTab('relatorios')" id="btn-relatorios" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 hover:text-white transition">
-                    <i class="fa-solid fa-file-contract w-6"></i> Relatórios
+                <button onclick="switchTab('relatorios')" id="btn-relatorios" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-file-contract w-6 text-orange-500"></i> Relatórios
                 </button>
             </nav>
         </aside>
@@ -84,16 +83,16 @@
         <!-- Conteúdo Principal -->
         <main class="flex-1 p-6 md:p-10 overflow-y-auto">
 
-            <header class="flex justify-between items-center pb-6 mb-6 border-b border-slate-700">
+            <header class="flex justify-between items-center pb-6 mb-6 border-b border-slate-800">
                 <div class="flex items-center space-x-4">
                     <h2 id="page-title" class="text-2xl font-bold text-white">Dashboard Geral</h2>
-                    <button onclick="carregarDados()" title="Recarregar Dados" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-1.5 rounded-lg transition flex items-center gap-1">
-                        <i class="fa-solid fa-rotate"></i> Atualizar
+                    <button onclick="carregarDados()" title="Recarregar Dados" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-lg transition flex items-center gap-1 border border-slate-700">
+                        <i class="fa-solid fa-rotate text-orange-400"></i> Atualizar
                     </button>
                 </div>
                 <div class="flex items-center space-x-3">
-                    <span class="text-sm font-medium text-slate-400">Admin Gestor</span>
-                    <button onclick="logout()" title="Sair" class="w-10 h-10 rounded-full bg-slate-800 text-slate-300 hover:bg-rose-900/50 hover:text-rose-400 flex items-center justify-center font-bold transition border border-slate-700">
+                    <span class="text-sm font-semibold text-orange-400">Ana-Log Gestor</span>
+                    <button onclick="logout()" title="Sair" class="w-10 h-10 rounded-full bg-slate-900 text-slate-300 hover:bg-rose-900/50 hover:text-rose-400 flex items-center justify-center font-bold transition border border-slate-800">
                         <i class="fa-solid fa-right-from-bracket"></i>
                     </button>
                 </div>
@@ -102,16 +101,16 @@
             <!-- ABA: DASHBOARD -->
             <section id="tab-dashboard" class="tab-content space-y-6">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex items-center justify-between">
+                    <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 flex items-center justify-between">
                         <div>
                             <p class="text-xs text-slate-400 font-semibold uppercase">Total Veículos</p>
                             <p id="dash-total" class="text-2xl font-bold text-white mt-1">0</p>
                         </div>
-                        <div class="w-10 h-10 bg-blue-500/20 text-blue-400 rounded-lg flex items-center justify-center text-lg">
+                        <div class="w-10 h-10 bg-orange-500/20 text-orange-400 rounded-lg flex items-center justify-center text-lg">
                             <i class="fa-solid fa-car"></i>
                         </div>
                     </div>
-                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex items-center justify-between">
+                    <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 flex items-center justify-between">
                         <div>
                             <p class="text-xs text-slate-400 font-semibold uppercase">Disponíveis</p>
                             <p id="dash-disponivel" class="text-2xl font-bold text-emerald-400 mt-1">0</p>
@@ -120,7 +119,7 @@
                             <i class="fa-solid fa-circle-check"></i>
                         </div>
                     </div>
-                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex items-center justify-between">
+                    <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 flex items-center justify-between">
                         <div>
                             <p class="text-xs text-slate-400 font-semibold uppercase">Em Uso / Rota</p>
                             <p id="dash-emuso" class="text-2xl font-bold text-amber-400 mt-1">0</p>
@@ -129,7 +128,7 @@
                             <i class="fa-solid fa-route"></i>
                         </div>
                     </div>
-                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex items-center justify-between">
+                    <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 flex items-center justify-between">
                         <div>
                             <p class="text-xs text-slate-400 font-semibold uppercase">Manutenção</p>
                             <p id="dash-manutencao" class="text-2xl font-bold text-rose-400 mt-1">0</p>
@@ -138,8 +137,7 @@
                             <i class="fa-solid fa-wrench"></i>
                         </div>
                     </div>
-                    <!-- CARD NOVO: ALERTAS DE ÓLEO -->
-                    <div class="bg-slate-800 p-5 rounded-xl border border-slate-700 flex items-center justify-between">
+                    <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 flex items-center justify-between">
                         <div>
                             <p class="text-xs text-slate-400 font-semibold uppercase">Troca Óleo Alerta</p>
                             <p id="dash-oleo-alerta" class="text-2xl font-bold text-amber-400 mt-1">0</p>
@@ -151,17 +149,17 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
-                        <h3 class="text-lg font-bold text-white mb-4">Status da Frota</h3>
+                    <div class="bg-slate-900 p-6 rounded-xl border border-slate-800">
+                        <h3 class="text-lg font-bold text-white mb-4">Status da Frota Ana-Log</h3>
                         <div class="h-64 flex justify-center">
                             <canvas id="chartStatusDashboard"></canvas>
                         </div>
                     </div>
-                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                    <div class="bg-slate-900 p-6 rounded-xl border border-slate-800">
                         <h3 class="text-lg font-bold text-white mb-4">Últimos Checklists Registrados</h3>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-sm text-slate-300">
-                                <thead class="bg-slate-900 text-xs uppercase text-slate-400">
+                                <thead class="bg-slate-950 text-xs uppercase text-slate-400">
                                     <tr>
                                         <th class="p-3">Data</th>
                                         <th class="p-3">Placa</th>
@@ -169,7 +167,7 @@
                                         <th class="p-3">KM</th>
                                     </tr>
                                 </thead>
-                                <tbody id="recent-checklists-body" class="divide-y divide-slate-700">
+                                <tbody id="recent-checklists-body" class="divide-y divide-slate-800">
                                     <!-- Preenchido via JS -->
                                 </tbody>
                             </table>
@@ -180,15 +178,15 @@
 
             <!-- ABA: CHECKLISTS RECEBIDOS -->
             <section id="tab-checklists" class="tab-content hidden space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-800 p-4 rounded-xl border border-slate-700">
-                    <input type="text" id="search-checklists" oninput="renderChecklistsTable()" placeholder="Buscar por placa ou motorista..." class="w-full sm:w-80 p-2.5 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <span class="text-xs text-slate-400">Total de Registros: <strong id="total-checklists-count" class="text-white">0</strong></span>
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <input type="text" id="search-checklists" oninput="renderChecklistsTable()" placeholder="Buscar por placa ou motorista..." class="w-full sm:w-80 p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                    <span class="text-xs text-slate-400">Total de Registros: <strong id="total-checklists-count" class="text-orange-400">0</strong></span>
                 </div>
 
-                <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                <div class="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
-                            <thead class="bg-slate-900 text-xs font-semibold uppercase text-slate-400 border-b border-slate-700">
+                            <thead class="bg-slate-950 text-xs font-semibold uppercase text-slate-400 border-b border-slate-800">
                                 <tr>
                                     <th class="p-4">Data/Hora</th>
                                     <th class="p-4">Placa</th>
@@ -201,7 +199,7 @@
                                     <th class="p-4 text-center">Foto</th>
                                 </tr>
                             </thead>
-                            <tbody id="checklists-table-body" class="divide-y divide-slate-700 text-sm text-slate-200">
+                            <tbody id="checklists-table-body" class="divide-y divide-slate-800 text-sm text-slate-200">
                                 <!-- Preenchido via JS -->
                             </tbody>
                         </table>
@@ -209,19 +207,19 @@
                 </div>
             </section>
 
-            <!-- ABA: LISTA DE VEÍCULOS (Com Controle de Óleo) -->
+            <!-- ABA: LISTA DE VEÍCULOS -->
             <section id="tab-veiculos" class="tab-content hidden space-y-4">
-                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-800 p-4 rounded-xl border border-slate-700">
-                    <input type="text" id="search-input" oninput="renderVehiclesTable()" placeholder="Buscar por placa, marca ou modelo..." class="w-full sm:w-80 p-2.5 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                    <button onclick="resetForm(); switchTab('cadastro');" class="w-full sm:w-auto px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                <div class="flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-900 p-4 rounded-xl border border-slate-800">
+                    <input type="text" id="search-input" oninput="renderVehiclesTable()" placeholder="Buscar por placa, marca ou modelo..." class="w-full sm:w-80 p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                    <button onclick="resetForm(); switchTab('cadastro');" class="w-full sm:w-auto px-4 py-2.5 bg-orange-600 text-white rounded-lg hover:bg-orange-500 transition font-bold">
                         <i class="fa-solid fa-plus mr-1"></i> Novo Veículo
                     </button>
                 </div>
 
-                <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+                <div class="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse">
-                            <thead class="bg-slate-900 text-xs font-semibold uppercase text-slate-400 border-b border-slate-700">
+                            <thead class="bg-slate-950 text-xs font-semibold uppercase text-slate-400 border-b border-slate-800">
                                 <tr>
                                     <th class="p-4">Placa</th>
                                     <th class="p-4">Marca / Modelo</th>
@@ -231,7 +229,7 @@
                                     <th class="p-4 text-center">Ações</th>
                                 </tr>
                             </thead>
-                            <tbody id="vehicles-table-body" class="divide-y divide-slate-700 text-sm text-slate-200">
+                            <tbody id="vehicles-table-body" class="divide-y divide-slate-800 text-sm text-slate-200">
                                 <!-- Preenchido via JS -->
                             </tbody>
                         </table>
@@ -239,37 +237,37 @@
                 </div>
             </section>
 
-            <!-- ABA: CADASTRO / EDIÇÃO DE VEÍCULO -->
+            <!-- ABA: CADASTRO / EDIÇÃO -->
             <section id="tab-cadastro" class="tab-content hidden">
-                <div class="max-w-2xl bg-slate-800 p-8 rounded-xl border border-slate-700">
+                <div class="max-w-2xl bg-slate-900 p-8 rounded-xl border border-slate-800">
                     <h3 class="text-xl font-bold text-white mb-6">Cadastrar / Editar Veículo</h3>
                     <form id="vehicle-form" onsubmit="handleVehicleSubmit(event)" class="space-y-5">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Placa</label>
-                                <input type="text" id="placa" placeholder="ABC-1D23" required class="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none uppercase">
+                                <input type="text" id="placa" placeholder="ABC-1D23" required class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none uppercase">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Marca</label>
-                                <input type="text" id="marca" placeholder="Ex: Chevrolet" required class="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <input type="text" id="marca" placeholder="Ex: Chevrolet" required class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Modelo</label>
-                                <input type="text" id="modelo" placeholder="Ex: Onix 1.0" required class="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <input type="text" id="modelo" placeholder="Ex: Onix 1.0" required class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Ano</label>
-                                <input type="number" id="ano" min="1990" max="2027" placeholder="Ex: 2023" required class="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <input type="number" id="ano" min="1990" max="2027" placeholder="Ex: 2023" required class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Status</label>
-                                <select id="status" class="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <select id="status" class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
                                     <option value="Disponível">Disponível</option>
                                     <option value="Em Uso">Em Uso / Em Rota</option>
                                     <option value="Manutenção">Em Manutenção</option>
@@ -277,17 +275,17 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">KM Inicial / Atual</label>
-                                <input type="number" id="kmAtual" placeholder="Ex: 120000" required class="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <input type="number" id="kmAtual" placeholder="Ex: 120000" required class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">KM Próxima Troca Óleo</label>
-                                <input type="number" id="kmProximaTroca" placeholder="Ex: 130000" required class="w-full p-3 bg-slate-900 border border-slate-700 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                                <input type="number" id="kmProximaTroca" placeholder="Ex: 130000" required class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
                             </div>
                         </div>
 
                         <div class="flex justify-end space-x-3 pt-4">
-                            <button type="button" onclick="resetForm()" class="px-5 py-2.5 border border-slate-700 rounded-lg text-slate-300 hover:bg-slate-700 transition">Limpar</button>
-                            <button type="submit" id="submit-btn" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium">Salvar na Planilha</button>
+                            <button type="button" onclick="resetForm()" class="px-5 py-2.5 border border-slate-800 rounded-lg text-slate-300 hover:bg-slate-800 transition">Limpar</button>
+                            <button type="submit" id="submit-btn" class="px-5 py-2.5 bg-orange-600 text-white rounded-lg hover:bg-orange-500 transition font-bold">Salvar na Planilha</button>
                         </div>
                     </form>
                 </div>
@@ -297,20 +295,20 @@
             <section id="tab-relatorios" class="tab-content hidden space-y-6">
                 <div class="flex justify-between items-center">
                     <h3 class="text-xl font-bold text-white">Relatórios Gerenciais</h3>
-                    <button onclick="exportToCSV()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition text-sm font-medium">
+                    <button onclick="exportToCSV()" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-500 transition text-sm font-bold">
                         <i class="fa-solid fa-file-csv mr-2"></i> Exportar Dados (CSV)
                     </button>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                    <div class="bg-slate-900 p-6 rounded-xl border border-slate-800">
                         <h4 class="font-bold text-white mb-4">Frota por Marca</h4>
                         <div class="h-64 flex justify-center">
                             <canvas id="chartBrands"></canvas>
                         </div>
                     </div>
 
-                    <div class="bg-slate-800 p-6 rounded-xl border border-slate-700">
+                    <div class="bg-slate-900 p-6 rounded-xl border border-slate-800">
                         <h4 class="font-bold text-white mb-4">Disponibilidade Operacional</h4>
                         <div class="h-64 flex justify-center">
                             <canvas id="chartStatusReport"></canvas>
@@ -324,9 +322,10 @@
 
     <!-- MODAL DE QR CODE -->
     <div id="qr-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
-        <div id="qr-modal-content" class="bg-slate-800 p-8 rounded-2xl border border-slate-700 max-w-sm w-full text-center">
-            <h3 class="text-xl font-bold text-white mb-1">Adesivo QR Code</h3>
-            <p id="qr-placa-title" class="text-blue-400 font-bold text-lg mb-4">ABC-1234</p>
+        <div id="qr-modal-content" class="bg-slate-900 p-8 rounded-2xl border border-slate-800 max-w-sm w-full text-center">
+            <img src="./logo.png" alt="Ana-Log" class="h-10 mx-auto mb-2 object-contain bg-white/90 p-1 rounded" onerror="this.style.display='none'">
+            <h3 class="text-lg font-bold text-white mb-1">Adesivo QR Code</h3>
+            <p id="qr-placa-title" class="text-orange-400 font-bold text-lg mb-4">ABC-1234</p>
             
             <div class="bg-white p-4 rounded-xl inline-block shadow-lg mb-4">
                 <img id="qr-img" src="" alt="QR Code" class="w-48 h-48 mx-auto">
@@ -334,10 +333,10 @@
             <p class="text-xs text-slate-400 mb-6">Cole este QR Code no interior do veículo para acesso direto ao checklist.</p>
             
             <div id="qr-modal-actions" class="flex gap-3">
-                <button onclick="window.print()" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition">
+                <button onclick="window.print()" class="flex-1 py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg transition">
                     <i class="fa-solid fa-print mr-1"></i> Imprimir
                 </button>
-                <button onclick="closeQrModal()" class="py-2.5 px-4 bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold rounded-lg transition">
+                <button onclick="closeQrModal()" class="py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-lg transition">
                     Fechar
                 </button>
             </div>
@@ -453,13 +452,13 @@
         function switchTab(tabId) {
             document.querySelectorAll('.tab-content').forEach(tab => tab.classList.add('hidden'));
             document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('bg-slate-700', 'text-white', 'font-semibold');
+                btn.classList.remove('bg-slate-800', 'text-white', 'font-semibold');
                 btn.classList.add('text-slate-300');
             });
 
             document.getElementById(`tab-${tabId}`).classList.remove('hidden');
             const activeBtn = document.getElementById(`btn-${tabId}`);
-            if (activeBtn) activeBtn.classList.add('bg-slate-700', 'text-white', 'font-semibold');
+            if (activeBtn) activeBtn.classList.add('bg-slate-800', 'text-white', 'font-semibold');
 
             const titles = {
                 'dashboard': 'Dashboard Geral',
@@ -482,7 +481,6 @@
             const emUso = vehicles.filter(v => v.status === 'Em Uso' || v.status === 'Em Rota').length;
             const manutencao = vehicles.filter(v => v.status === 'Manutenção' || v.status === 'Em Manutenção').length;
 
-            // Contagem de alertas de óleo (<= 3000 km restantes)
             const alertaOleo = vehicles.filter(v => {
                 if (!v.kmProximaTroca) return false;
                 const restante = v.kmProximaTroca - v.kmAtual;
@@ -497,7 +495,7 @@
 
             const recentBody = document.getElementById('recent-checklists-body');
             recentBody.innerHTML = checklists.slice(0, 5).map(c => `
-                <tr class="border-b border-slate-700">
+                <tr class="border-b border-slate-800">
                     <td class="p-3 text-xs text-slate-400">${c.data}</td>
                     <td class="p-3 font-semibold text-white">${c.placa}</td>
                     <td class="p-3">${c.motorista}</td>
@@ -537,9 +535,9 @@
             }
 
             tbody.innerHTML = filtered.map(c => `
-                <tr class="hover:bg-slate-800/80 transition border-b border-slate-700">
+                <tr class="hover:bg-slate-800/80 transition border-b border-slate-800">
                     <td class="p-4 text-xs text-slate-400 whitespace-nowrap">${c.data}</td>
-                    <td class="p-4 font-bold text-blue-400">${c.placa}</td>
+                    <td class="p-4 font-bold text-orange-400">${c.placa}</td>
                     <td class="p-4 font-medium">${c.motorista}</td>
                     <td class="p-4">${c.km} km</td>
                     <td class="p-4">${getStatusBadge(c.oleo_agua)}</td>
@@ -548,7 +546,7 @@
                     <td class="p-4 text-xs max-w-xs truncate">${c.obs || '-'}</td>
                     <td class="p-4 text-center">
                         ${c.foto && c.foto.startsWith('http') ? 
-                            `<a href="${c.foto}" target="_blank" class="text-xs bg-blue-600/30 hover:bg-blue-600/50 text-blue-300 border border-blue-500/40 px-2.5 py-1 rounded-lg transition"><i class="fa-solid fa-image mr-1"></i> Foto</a>` : 
+                            `<a href="${c.foto}" target="_blank" class="text-xs bg-orange-600/30 hover:bg-orange-600/50 text-orange-300 border border-orange-500/40 px-2.5 py-1 rounded-lg transition"><i class="fa-solid fa-image mr-1"></i> Foto</a>` : 
                             '<span class="text-slate-500 text-xs">-</span>'}
                     </td>
                 </tr>
@@ -570,7 +568,7 @@
             }
 
             tbody.innerHTML = filtered.map(v => `
-                <tr class="hover:bg-slate-800/80 transition border-b border-slate-700">
+                <tr class="hover:bg-slate-800/80 transition border-b border-slate-800">
                     <td class="p-4 font-bold text-white">${v.placa}</td>
                     <td class="p-4">${v.marca} - ${v.modelo} (${v.ano})</td>
                     <td class="p-4">${getStatusBadge(v.status)}</td>
@@ -586,7 +584,6 @@
             `).join('');
         }
 
-        // LÓGICA DE CORES DAS TROCAS DE ÓLEO (VERDE > 3000, AMARELO <= 3000, VERMELHO <= 2000)
         function getOleoBadge(kmAtual, kmProximaTroca) {
             if (!kmProximaTroca || kmProximaTroca === 0) {
                 return `<span class="text-xs text-slate-500">Não configurado</span>`;
@@ -595,13 +592,13 @@
             const restante = kmProximaTroca - kmAtual;
 
             if (restante > 3000) {
-                return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">🟢 OK (Faltam ${restante.toLocaleString('pt-BR')} km)</span>`;
+                return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">🟢 OK (${restante.toLocaleString('pt-BR')} km)</span>`;
             }
             if (restante > 2000) {
-                return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">🟡 Atenção (Faltam ${restante.toLocaleString('pt-BR')} km)</span>`;
+                return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">🟡 Atenção (${restante.toLocaleString('pt-BR')} km)</span>`;
             }
             if (restante >= 0) {
-                return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold">🔴 Crítico (Faltam ${restante.toLocaleString('pt-BR')} km)</span>`;
+                return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30 font-bold">🔴 Crítico (${restante.toLocaleString('pt-BR')} km)</span>`;
             }
             const vencido = Math.abs(restante);
             return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-600 text-white font-bold animate-pulse">🔴 VENCIDO (+${vencido.toLocaleString('pt-BR')} km)</span>`;
@@ -631,7 +628,7 @@
                     })
                 });
 
-                alert(`✅ Troca de óleo renovada! Próxima troca configurada para ${novoKmProximaTroca.toLocaleString('pt-BR')} km.`);
+                alert(`✅ Troca de óleo renovada para o veículo ${placa}! Próxima troca: ${novoKmProximaTroca.toLocaleString('pt-BR')} km.`);
                 await carregarDados();
             } catch (err) {
                 alert("❌ Erro ao renovar troca de óleo.");
@@ -760,7 +757,7 @@
                 type: 'bar',
                 data: {
                     labels: Object.keys(brandCounts),
-                    datasets: [{ label: 'Quantidade', data: Object.values(brandCounts), backgroundColor: '#3b82f6' }]
+                    datasets: [{ label: 'Quantidade', data: Object.values(brandCounts), backgroundColor: '#ea580c' }]
                 },
                 options: { responsive: true, maintainAspectRatio: false }
             });
@@ -795,7 +792,7 @@
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `relatorio_checklists_${new Date().toISOString().slice(0,10)}.csv`;
+            link.download = `relatorio_checklists_analog_${new Date().toISOString().slice(0,10)}.csv`;
             link.click();
         }
     </script>
