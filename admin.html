@@ -74,6 +74,9 @@
                 <button onclick="switchTab('cadastro')" id="btn-cadastro" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
                     <i class="fa-solid fa-car-plus w-6 text-orange-500"></i> Cadastrar / Editar
                 </button>
+                <button onclick="switchTab('pneus_custos')" id="btn-pneus_custos" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-coins w-6 text-orange-500"></i> Pneus & Custos
+                </button>
                 <button onclick="switchTab('relatorios')" id="btn-relatorios" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
                     <i class="fa-solid fa-file-contract w-6 text-orange-500"></i> Relatórios
                 </button>
@@ -195,6 +198,8 @@
                                     <th class="p-4">Óleo/Água</th>
                                     <th class="p-4">Pneus</th>
                                     <th class="p-4">Luzes</th>
+                                    <th class="p-4">Combustível</th>
+                                    <th class="p-4">Freios</th>
                                     <th class="p-4">Observação</th>
                                     <th class="p-4 text-center">Foto</th>
                                 </tr>
@@ -226,6 +231,7 @@
                                     <th class="p-4">Status</th>
                                     <th class="p-4">KM Atual</th>
                                     <th class="p-4">Troca de Óleo</th>
+                                    <th class="p-4">Documentos (IPVA / Inspeção / Seguro)</th>
                                     <th class="p-4 text-center">Ações</th>
                                 </tr>
                             </thead>
@@ -237,9 +243,9 @@
                 </div>
             </section>
 
-            <!-- ABA: CADASTRO / EDIÇÃO -->
+            <!-- ABA: CADASTRO / EDIÇÃO DE VEÍCULO -->
             <section id="tab-cadastro" class="tab-content hidden">
-                <div class="max-w-2xl bg-slate-900 p-8 rounded-xl border border-slate-800">
+                <div class="max-w-3xl bg-slate-900 p-8 rounded-xl border border-slate-800">
                     <h3 class="text-xl font-bold text-white mb-6">Cadastrar / Editar Veículo</h3>
                     <form id="vehicle-form" onsubmit="handleVehicleSubmit(event)" class="space-y-5">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -283,11 +289,123 @@
                             </div>
                         </div>
 
+                        <hr class="border-slate-800">
+                        <h4 class="text-sm font-bold text-orange-400 uppercase tracking-wider">📅 Validade de Documentos</h4>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Vencimento IPVA</label>
+                                <input type="date" id="dataIpva" class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Vencimento Inspeção</label>
+                                <input type="date" id="dataInspecao" class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Vencimento Seguro</label>
+                                <input type="date" id="dataSeguro" class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                            </div>
+                        </div>
+
                         <div class="flex justify-end space-x-3 pt-4">
                             <button type="button" onclick="resetForm()" class="px-5 py-2.5 border border-slate-800 rounded-lg text-slate-300 hover:bg-slate-800 transition">Limpar</button>
                             <button type="submit" id="submit-btn" class="px-5 py-2.5 bg-orange-600 text-white rounded-lg hover:bg-orange-500 transition font-bold">Salvar na Planilha</button>
                         </div>
                     </form>
+                </div>
+            </section>
+
+            <!-- ABA: PNEUS & CUSTOS -->
+            <section id="tab-pneus_custos" class="tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Registar Troca de Pneu -->
+                    <div class="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
+                        <h4 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-compact-disc text-orange-500"></i> Registar Troca de Pneu</h4>
+                        <form id="form-pneu" onsubmit="handlePneuSubmit(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Veículo</label>
+                                <select id="pneu-placa-select" required class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                                    <!-- Preenchido via JS -->
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">KM na Troca</label>
+                                    <input type="number" id="pneu-km" required placeholder="Ex: 120000" class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Posição / Eixo</label>
+                                    <select id="pneu-posicao" class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                                        <option value="Todos (4 Pneus)">Todos (4 Pneus)</option>
+                                        <option value="Dianteiro Esquerdo">Dianteiro Esquerdo</option>
+                                        <option value="Dianteiro Direito">Dianteiro Direito</option>
+                                        <option value="Traseiro Esquerdo">Traseiro Esquerdo</option>
+                                        <option value="Traseiro Direito">Traseiro Direito</option>
+                                        <option value="Estepe">Estepe</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Marca / Modelo Pneu</label>
+                                    <input type="text" id="pneu-marca" required placeholder="Ex: Bridgestone 205/75" class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Valor Total (R$)</label>
+                                    <input type="number" step="0.01" id="pneu-valor" required placeholder="Ex: 1200.00" class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Oficina / Fornecedor</label>
+                                <input type="text" id="pneu-oficina" placeholder="Ex: Auto Center Silva" class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                            </div>
+                            <button type="submit" class="w-full py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg transition">Salvar Troca de Pneu</button>
+                        </form>
+                    </div>
+
+                    <!-- Registar Manutenção / Abastecimento / Outros Custos -->
+                    <div class="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
+                        <h4 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-receipt text-orange-500"></i> Registar Custo / Manutenção</h4>
+                        <form id="form-manut" onsubmit="handleManutSubmit(event)" class="space-y-4">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Veículo</label>
+                                    <select id="manut-placa-select" required class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                                        <!-- Preenchido via JS -->
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Tipo de Custo</label>
+                                    <select id="manut-tipo" class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                                        <option value="Abastecimento">Abastecimento</option>
+                                        <option value="Manutenção Preventiva">Manutenção Preventiva</option>
+                                        <option value="Manutenção Corretiva">Manutenção Corretiva</option>
+                                        <option value="Freios / Suspensão">Freios / Suspensão</option>
+                                        <option value="Outros">Outros</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Descrição</label>
+                                <input type="text" id="manut-desc" required placeholder="Ex: Troca de pastilhas de freio" class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">KM Atual</label>
+                                    <input type="number" id="manut-km" required placeholder="Ex: 121000" class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Valor Total (R$)</label>
+                                    <input type="number" step="0.01" id="manut-valor" required placeholder="Ex: 350.00" class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Oficina / Posto</label>
+                                <input type="text" id="manut-oficina" placeholder="Ex: Posto Shell / Oficina Central" class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                            </div>
+                            <button type="submit" class="w-full py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg transition">Salvar Custo</button>
+                        </form>
+                    </div>
                 </div>
             </section>
 
@@ -320,6 +438,23 @@
         </main>
     </div>
 
+    <!-- MODAL DE DOSSIÊ DO VEÍCULO -->
+    <div id="dossie-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50 overflow-y-auto">
+        <div class="bg-slate-900 p-6 md:p-8 rounded-2xl border border-slate-800 max-w-4xl w-full max-h-[90vh] overflow-y-auto my-8">
+            <div class="flex justify-between items-start border-b border-slate-800 pb-4 mb-6">
+                <div>
+                    <h3 id="dossie-placa" class="text-2xl font-bold text-orange-400">ABC-1234</h3>
+                    <p id="dossie-sub" class="text-slate-400 text-sm">Chevrolet Onix 2023</p>
+                </div>
+                <button onclick="closeDossieModal()" class="text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div id="dossie-content" class="space-y-6">
+                <!-- Conteúdo preenchido dinamicamente via JavaScript -->
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL DE QR CODE -->
     <div id="qr-modal" class="fixed inset-0 bg-black/80 hidden items-center justify-center p-4 z-50">
         <div id="qr-modal-content" class="bg-slate-900 p-8 rounded-2xl border border-slate-800 max-w-sm w-full text-center">
@@ -349,6 +484,8 @@
 
         let vehicles = [];
         let checklists = [];
+        let pneus = [];
+        let manutencaoList = [];
 
         let chartStatusDashInstance = null;
         let chartBrandsInstance = null;
@@ -383,8 +520,14 @@
         }
 
         async function carregarDados() {
-            await Promise.all([carregarVeiculosDaPlanilha(), carregarChecklistsDaPlanilha()]);
+            await Promise.all([
+                carregarVeiculosDaPlanilha(), 
+                carregarChecklistsDaPlanilha(),
+                carregarPneusDaPlanilha(),
+                carregarManutencaoDaPlanilha()
+            ]);
             updateDashboard();
+            populerSelectsVeiculos();
         }
 
         async function carregarVeiculosDaPlanilha() {
@@ -405,7 +548,10 @@
                                 ano: row[3] || '',
                                 status: row[4] || 'Disponível',
                                 kmAtual: Number(row[5]) || 0,
-                                kmProximaTroca: Number(row[6]) || 0
+                                kmProximaTroca: Number(row[6]) || 0,
+                                dataIpva: row[7] || '',
+                                dataInspecao: row[8] || '',
+                                dataSeguro: row[9] || ''
                             });
                         }
                     });
@@ -435,8 +581,10 @@
                         oleo_agua: row[4] || '',
                         pneus: row[5] || '',
                         luzes: row[6] || '',
-                        obs: row[7] || '',
-                        foto: row[8] || ''
+                        combustivel: row[7] || '',
+                        freios: row[8] || '',
+                        obs: row[12] || row[7] || '',
+                        foto: row[13] || row[8] || ''
                     })).reverse();
                     
                     renderChecklistsTable();
@@ -447,6 +595,56 @@
             } catch (error) {
                 console.error("Erro ao carregar checklists:", error);
             }
+        }
+
+        async function carregarPneusDaPlanilha() {
+            if (!SCRIPT_URL) return;
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getPneus`);
+                const data = await response.json();
+                if (Array.isArray(data) && data.length > 1) {
+                    pneus = data.slice(1).map(r => ({
+                        data: r[0] ? new Date(r[0]).toLocaleDateString('pt-BR') : '',
+                        placa: r[1] || '',
+                        kmTroca: r[2] || 0,
+                        marcaPneu: r[3] || '',
+                        posicao: r[4] || '',
+                        valor: r[5] || 0,
+                        oficina: r[6] || ''
+                    })).reverse();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        async function carregarManutencaoDaPlanilha() {
+            if (!SCRIPT_URL) return;
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getManutencoes`);
+                const data = await response.json();
+                if (Array.isArray(data) && data.length > 1) {
+                    manutencaoList = data.slice(1).map(r => ({
+                        data: r[0] ? new Date(r[0]).toLocaleDateString('pt-BR') : '',
+                        placa: r[1] || '',
+                        tipo: r[2] || '',
+                        descricao: r[3] || '',
+                        km: r[4] || 0,
+                        valor: r[5] || 0,
+                        oficina: r[6] || ''
+                    })).reverse();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function populerSelectsVeiculos() {
+            const selects = [document.getElementById('pneu-placa-select'), document.getElementById('manut-placa-select')];
+            selects.forEach(s => {
+                if (!s) return;
+                s.innerHTML = vehicles.map(v => `<option value="${v.placa}">${v.placa} - ${v.marca} ${v.modelo}</option>`).join('');
+            });
         }
 
         function switchTab(tabId) {
@@ -465,6 +663,7 @@
                 'checklists': 'Acompanhamento de Checklists',
                 'veiculos': 'Lista de Veículos',
                 'cadastro': 'Cadastrar / Editar Veículo',
+                'pneus_custos': 'Pneus & Custos Operacionais',
                 'relatorios': 'Relatórios & Métricas'
             };
             document.getElementById('page-title').innerText = titles[tabId];
@@ -530,7 +729,7 @@
             const tbody = document.getElementById('checklists-table-body');
             
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center text-slate-400">Nenhum checklist registrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center text-slate-400">Nenhum checklist registrado.</td></tr>`;
                 return;
             }
 
@@ -543,6 +742,8 @@
                     <td class="p-4">${getStatusBadge(c.oleo_agua)}</td>
                     <td class="p-4">${getStatusBadge(c.pneus)}</td>
                     <td class="p-4">${getStatusBadge(c.luzes)}</td>
+                    <td class="p-4 text-xs">${c.combustivel || '-'}</td>
+                    <td class="p-4">${getStatusBadge(c.freios)}</td>
                     <td class="p-4 text-xs max-w-xs truncate">${c.obs || '-'}</td>
                     <td class="p-4 text-center">
                         ${c.foto && c.foto.startsWith('http') ? 
@@ -563,7 +764,7 @@
 
             const tbody = document.getElementById('vehicles-table-body');
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-400">Nenhum veículo cadastrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">Nenhum veículo cadastrado.</td></tr>`;
                 return;
             }
 
@@ -574,14 +775,41 @@
                     <td class="p-4">${getStatusBadge(v.status)}</td>
                     <td class="p-4 font-semibold text-slate-300">${v.kmAtual ? v.kmAtual.toLocaleString('pt-BR') + ' km' : '-'}</td>
                     <td class="p-4">${getOleoBadge(v.kmAtual, v.kmProximaTroca)}</td>
+                    <td class="p-4 space-y-1 text-xs">
+                        <div>IPVA: ${getDocBadge(v.dataIpva)}</div>
+                        <div>Insp: ${getDocBadge(v.dataInspecao)}</div>
+                        <div>Seguro: ${getDocBadge(v.dataSeguro)}</div>
+                    </td>
                     <td class="p-4 text-center space-x-2 whitespace-nowrap">
-                        <button onclick="renovarTrocaOleo('${v.placa}', ${v.kmAtual})" title="Renovar Troca de Óleo" class="text-xs bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/40 px-2 py-1 rounded-lg transition"><i class="fa-solid fa-oil-can mr-1"></i> Troca Óleo</button>
+                        <button onclick="openDossieModal('${v.placa}')" title="Dossiê Completo" class="text-xs bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-500/40 px-2 py-1 rounded-lg transition"><i class="fa-solid fa-folder-open mr-1"></i> Dossiê</button>
+                        <button onclick="renovarTrocaOleo('${v.placa}', ${v.kmAtual})" title="Renovar Troca de Óleo" class="text-xs bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500/40 px-2 py-1 rounded-lg transition"><i class="fa-solid fa-oil-can mr-1"></i> Óleo</button>
                         <button onclick="openQrModal('${v.placa}')" title="Gerar QR Code" class="text-emerald-400 hover:text-emerald-300"><i class="fa-solid fa-qrcode"></i></button>
-                        <button onclick="editVehicle('${v.placa}')" title="Editar" class="text-blue-400 hover:text-blue-300"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button onclick="editVehicle('${v.placa}')" title="Editar" class="text-orange-400 hover:text-orange-300"><i class="fa-solid fa-pen-to-square"></i></button>
                         <button onclick="deleteVehicle('${v.placa}')" title="Excluir" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button>
                     </td>
                 </tr>
             `).join('');
+        }
+
+        // LÓGICA DE CORES DA VALIDADE DE DOCUMENTOS (VERDE >30d, AMARELO <=30d, VERMELHO <=10d/VENCIDO)
+        function getDocBadge(dateStr) {
+            if (!dateStr) return `<span class="text-slate-500">-</span>`;
+            
+            const hoje = new Date();
+            const venc = new Date(dateStr);
+            const diffDias = Math.ceil((venc - hoje) / (1000 * 60 * 60 * 24));
+
+            const formatada = venc.toLocaleDateString('pt-BR');
+
+            if (diffDias > 30) {
+                return `<span class="text-emerald-400 font-medium">🟢 ${formatada}</span>`;
+            } else if (diffDias > 10) {
+                return `<span class="text-amber-400 font-bold">🟡 ${formatada} (${diffDias}d)</span>`;
+            } else if (diffDias >= 0) {
+                return `<span class="text-rose-400 font-bold">🔴 ${formatada} (${diffDias}d)</span>`;
+            } else {
+                return `<span class="text-rose-500 font-bold animate-pulse">🔴 VENCIDO (${formatada})</span>`;
+            }
         }
 
         function getOleoBadge(kmAtual, kmProximaTroca) {
@@ -602,6 +830,176 @@
             }
             const vencido = Math.abs(restante);
             return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-600 text-white font-bold animate-pulse">🔴 VENCIDO (+${vencido.toLocaleString('pt-BR')} km)</span>`;
+        }
+
+        // ABRIR DOSSIÊ DO VEÍCULO
+        function openDossieModal(placa) {
+            const vehicle = vehicles.find(v => v.placa === placa);
+            if (!vehicle) return;
+
+            document.getElementById('dossie-placa').innerText = `Veículo ${vehicle.placa}`;
+            document.getElementById('dossie-sub').innerText = `${vehicle.marca} ${vehicle.modelo} (${vehicle.ano}) • Status: ${vehicle.status}`;
+
+            const vehicleChecklists = checklists.filter(c => c.placa === placa);
+            const vehiclePneus = pneus.filter(p => p.placa === placa);
+            const vehicleCustos = manutencaoList.filter(m => m.placa === placa);
+
+            const totalCustosPneus = vehiclePneus.reduce((acc, p) => acc + Number(p.valor), 0);
+            const totalOutrosCustos = vehicleCustos.reduce((acc, m) => acc + Number(m.valor), 0);
+            const totalInvestido = totalCustosPneus + totalOutrosCustos;
+
+            const content = document.getElementById('dossie-content');
+            content.innerHTML = `
+                <!-- Resumo Geral -->
+                <div class="grid grid-cols-1 sm:grid-cols-4 gap-4 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">KM Atual</p>
+                        <p class="text-lg font-bold text-white">${vehicle.kmAtual ? vehicle.kmAtual.toLocaleString('pt-BR') : 0} km</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">Próxima Troca Óleo</p>
+                        <p class="text-lg font-bold text-orange-400">${vehicle.kmProximaTroca ? vehicle.kmProximaTroca.toLocaleString('pt-BR') : 0} km</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">Total Investido</p>
+                        <p class="text-lg font-bold text-emerald-400">R$ ${totalInvestido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">Total Checklists</p>
+                        <p class="text-lg font-bold text-blue-400">${vehicleChecklists.length}</p>
+                    </div>
+                </div>
+
+                <!-- Documentos -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+                    <h4 class="text-sm font-bold text-orange-400 uppercase">📅 Validade de Documentos</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
+                        <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">IPVA: ${getDocBadge(vehicle.dataIpva)}</div>
+                        <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">Inspeção: ${getDocBadge(vehicle.dataInspecao)}</div>
+                        <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">Seguro: ${getDocBadge(vehicle.dataSeguro)}</div>
+                    </div>
+                </div>
+
+                <!-- Histórico de Pneus -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <h4 class="text-sm font-bold text-white uppercase flex justify-between">
+                        <span>🛞 Trocas de Pneus (${vehiclePneus.length})</span>
+                        <span class="text-xs text-emerald-400">R$ ${totalCustosPneus.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    </h4>
+                    ${vehiclePneus.length === 0 ? '<p class="text-xs text-slate-500">Nenhum registo de pneu enviado.</p>' : `
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-900 text-slate-400 uppercase">
+                                    <tr><th class="p-2">Data</th><th class="p-2">Marca/Modelo</th><th class="p-2">Posição</th><th class="p-2">KM</th><th class="p-2">Valor</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800 text-slate-300">
+                                    ${vehiclePneus.map(p => `
+                                        <tr>
+                                            <td class="p-2">${p.data}</td>
+                                            <td class="p-2 font-bold">${p.marcaPneu}</td>
+                                            <td class="p-2">${p.posicao}</td>
+                                            <td class="p-2">${p.kmTroca} km</td>
+                                            <td class="p-2 text-emerald-400 font-semibold">R$ ${Number(p.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `}
+                </div>
+
+                <!-- Histórico de Custos / Manutenções -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <h4 class="text-sm font-bold text-white uppercase flex justify-between">
+                        <span>💰 Manutenções & Abastecimentos (${vehicleCustos.length})</span>
+                        <span class="text-xs text-emerald-400">R$ ${totalOutrosCustos.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    </h4>
+                    ${vehicleCustos.length === 0 ? '<p class="text-xs text-slate-500">Nenhuma manutenção ou abastecimento registado.</p>' : `
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-900 text-slate-400 uppercase">
+                                    <tr><th class="p-2">Data</th><th class="p-2">Tipo</th><th class="p-2">Descrição</th><th class="p-2">KM</th><th class="p-2">Valor</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800 text-slate-300">
+                                    ${vehicleCustos.map(m => `
+                                        <tr>
+                                            <td class="p-2">${m.data}</td>
+                                            <td class="p-2 font-bold text-orange-400">${m.tipo}</td>
+                                            <td class="p-2">${m.descricao}</td>
+                                            <td class="p-2">${m.km} km</td>
+                                            <td class="p-2 text-emerald-400 font-semibold">R$ ${Number(m.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `}
+                </div>
+            `;
+
+            const modal = document.getElementById('dossie-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDossieModal() {
+            const modal = document.getElementById('dossie-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        async function handlePneuSubmit(e) {
+            e.preventDefault();
+            const payload = {
+                action: "registrarPneu",
+                placa: document.getElementById('pneu-placa-select').value,
+                kmTroca: document.getElementById('pneu-km').value,
+                posicao: document.getElementById('pneu-posicao').value,
+                marcaPneu: document.getElementById('pneu-marca').value,
+                valor: document.getElementById('pneu-valor').value,
+                oficina: document.getElementById('pneu-oficina').value
+            };
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                alert("✅ Troca de pneu registada!");
+                document.getElementById('form-pneu').reset();
+                await carregarDados();
+            } catch (err) {
+                alert("❌ Erro ao salvar troca de pneu.");
+            }
+        }
+
+        async function handleManutSubmit(e) {
+            e.preventDefault();
+            const payload = {
+                action: "registrarManutencao",
+                placa: document.getElementById('manut-placa-select').value,
+                tipo: document.getElementById('manut-tipo').value,
+                descricao: document.getElementById('manut-desc').value,
+                km: document.getElementById('manut-km').value,
+                valor: document.getElementById('manut-valor').value,
+                oficina: document.getElementById('manut-oficina').value
+            };
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                alert("✅ Custo/Manutenção registada!");
+                document.getElementById('form-manut').reset();
+                await carregarDados();
+            } catch (err) {
+                alert("❌ Erro ao salvar manutenção.");
+            }
         }
 
         async function renovarTrocaOleo(placa, kmAtual) {
@@ -658,32 +1056,29 @@
             submitBtn.innerText = "A salvar...";
             submitBtn.disabled = true;
 
-            const placa = document.getElementById('placa').value.toUpperCase().trim();
-            const marca = document.getElementById('marca').value;
-            const modelo = document.getElementById('modelo').value;
-            const ano = parseInt(document.getElementById('ano').value);
-            const status = document.getElementById('status').value;
-            const kmAtual = parseInt(document.getElementById('kmAtual').value) || 0;
-            const kmProximaTroca = parseInt(document.getElementById('kmProximaTroca').value) || (kmAtual + 10000);
+            const payload = {
+                action: "cadastrarVeiculo",
+                placa: document.getElementById('placa').value.toUpperCase().trim(),
+                marca: document.getElementById('marca').value,
+                modelo: document.getElementById('modelo').value,
+                ano: parseInt(document.getElementById('ano').value),
+                status: document.getElementById('status').value,
+                kmAtual: parseInt(document.getElementById('kmAtual').value) || 0,
+                kmProximaTroca: parseInt(document.getElementById('kmProximaTroca').value) || (parseInt(document.getElementById('kmAtual').value) + 10000),
+                dataIpva: document.getElementById('dataIpva').value,
+                dataInspecao: document.getElementById('dataInspecao').value,
+                dataSeguro: document.getElementById('dataSeguro').value
+            };
 
             try {
                 await fetch(SCRIPT_URL, {
                     method: "POST",
                     mode: "no-cors",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        action: "cadastrarVeiculo",
-                        placa: placa,
-                        marca: marca,
-                        modelo: modelo,
-                        ano: ano,
-                        status: status,
-                        kmAtual: kmAtual,
-                        kmProximaTroca: kmProximaTroca
-                    })
+                    body: JSON.stringify(payload)
                 });
 
-                alert("✅ Veículo e metas de óleo salvos!");
+                alert("✅ Veículo salvo!");
                 resetForm();
                 await carregarDados();
                 switchTab('veiculos');
@@ -724,6 +1119,9 @@
             document.getElementById('status').value = vehicle.status;
             document.getElementById('kmAtual').value = vehicle.kmAtual || 0;
             document.getElementById('kmProximaTroca').value = vehicle.kmProximaTroca || 0;
+            document.getElementById('dataIpva').value = vehicle.dataIpva || '';
+            document.getElementById('dataInspecao').value = vehicle.dataInspecao || '';
+            document.getElementById('dataSeguro').value = vehicle.dataSeguro || '';
 
             switchTab('cadastro');
         }
@@ -733,8 +1131,8 @@
         }
 
         function getStatusBadge(status) {
-            const isCritical = ['Crítico', 'Furado/Danificado', 'Manutenção', 'Em Manutenção'].includes(status);
-            const isWarning = ['Atenção', 'Gastos', 'Lâmpada Queimada', 'Em Uso', 'Em Rota'].includes(status);
+            const isCritical = ['Crítico', 'Furado/Danificado', 'Manutenção', 'Em Manutenção', 'Deficiente'].includes(status);
+            const isWarning = ['Atenção', 'Gastos', 'Lâmpada Queimada', 'Em Uso', 'Em Rota', 'Reserva', 'Pedal Baixo/Ruído'].includes(status);
             
             if (isCritical) {
                 return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30">${status}</span>`;
@@ -784,9 +1182,9 @@
                 return;
             }
 
-            let csv = 'Data,Placa,Motorista,KM,Oleo_Agua,Pneus,Luzes,Observacao,Foto\n';
+            let csv = 'Data,Placa,Motorista,KM,Oleo_Agua,Pneus,Luzes,Combustivel,Freios,Observacao,Foto\n';
             checklists.forEach(c => {
-                csv += `"${c.data}","${c.placa}","${c.motorista}",${c.km},"${c.oleo_agua}","${c.pneus}","${c.luzes}","${c.obs}","${c.foto}"\n`;
+                csv += `"${c.data}","${c.placa}","${c.motorista}",${c.km},"${c.oleo_agua}","${c.pneus}","${c.luzes}","${c.combustivel}","${c.freios}","${c.obs}","${c.foto}"\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
