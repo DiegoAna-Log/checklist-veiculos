@@ -53,19 +53,21 @@
                 <p id="km-error" class="text-xs text-rose-400 mt-1 hidden font-semibold"><i class="fa-solid fa-circle-exclamation mr-1"></i> O KM não pode ser menor que o último registrado!</p>
             </div>
 
-            <!-- NÍVEL DE ÓLEO E ÁGUA -->
+            <hr class="border-slate-800">
+
+            <!-- 1. NÍVEL DE ÓLEO E ÁGUA -->
             <div>
-                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Nível de Óleo e Água</label>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">1. Nível de Óleo e Água</label>
                 <select id="oleo_agua" required class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:outline-none focus:border-orange-500">
                     <option value="OK">OK - Nível Adequado</option>
                     <option value="Atenção">Atenção - Próximo do Mínimo</option>
-                    <option value="Crítico">Crítico - Incompletar Impossível</option>
+                    <option value="Crítico">Crítico - Incompletar / Abaixo do Mínimo</option>
                 </select>
             </div>
 
-            <!-- ESTADO DOS PNEUS -->
+            <!-- 2. ESTADO DOS PNEUS -->
             <div>
-                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Estado dos Pneus</label>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">2. Estado dos Pneus</label>
                 <select id="pneus" required class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:outline-none focus:border-orange-500">
                     <option value="OK">OK - Bom Estado e Calibrados</option>
                     <option value="Gastos">Atenção - Pneus Gastos</option>
@@ -73,14 +75,65 @@
                 </select>
             </div>
 
-            <!-- LUZES E FARÓIS -->
+            <!-- 3. LUZES E FARÓIS -->
             <div>
-                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Luzes e Faróis</label>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">3. Luzes e Faróis</label>
                 <select id="luzes" required class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:outline-none focus:border-orange-500">
                     <option value="OK">OK - Todas Funcionando</option>
                     <option value="Lâmpada Queimada">Atenção - Lâmpada Queimada</option>
                 </select>
             </div>
+
+            <!-- 4. NÍVEL DE COMBUSTÍVEL -->
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">4. Nível de Combustível</label>
+                <select id="combustivel" required class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:outline-none focus:border-orange-500">
+                    <option value="Tanque Cheio">Tanque Cheio (1/1)</option>
+                    <option value="3/4">3/4 do Tanque</option>
+                    <option value="1/2">Meio Tanque (1/2)</option>
+                    <option value="1/4">1/4 do Tanque</option>
+                    <option value="Reserva">Reserva (Atenção)</option>
+                </select>
+            </div>
+
+            <!-- 5. SISTEMA DE FREIOS -->
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">5. Freios (Serviço e Mão)</label>
+                <select id="freios" required class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:outline-none focus:border-orange-500">
+                    <option value="OK">OK - Freando Normal</option>
+                    <option value="Pedal Baixo/Ruído">Atenção - Pedal Baixo ou Ruído</option>
+                    <option value="Deficiente">Crítico - Freio Deficiente</option>
+                </select>
+            </div>
+
+            <!-- 6. EQUIPAMENTOS OBRIGATÓRIOS -->
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">6. Equipamentos (Macaco, Chave, Triângulo)</label>
+                <select id="equipamentos" required class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:outline-none focus:border-orange-500">
+                    <option value="Todos Presentes">OK - Todos Presentes e Funcionais</option>
+                    <option value="Incompletos">Atenção - Item Incompleto ou Faltando</option>
+                </select>
+            </div>
+
+            <!-- 7. CINTOS DE SEGURANÇA -->
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">7. Cintos de Segurança</label>
+                <select id="cintos" required class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:outline-none focus:border-orange-500">
+                    <option value="OK">OK - Todos Operacionais</option>
+                    <option value="Danificado/Faltando">Atenção - Danificado ou Faltando</option>
+                </select>
+            </div>
+
+            <!-- 8. LIMPEZA E HIGIENE -->
+            <div>
+                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">8. Limpeza e Higiene do Veículo</label>
+                <select id="limpeza" required class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:outline-none focus:border-orange-500">
+                    <option value="Veículo Limpo">OK - Veículo Limpo e Organizado</option>
+                    <option value="Necessita Higienização">Atenção - Necessita Higienização</option>
+                </select>
+            </div>
+
+            <hr class="border-slate-800">
 
             <!-- OBSERVAÇÕES -->
             <div>
@@ -240,6 +293,11 @@
                 oleo_agua: document.getElementById('oleo_agua').value,
                 pneus: document.getElementById('pneus').value,
                 luzes: document.getElementById('luzes').value,
+                combustivel: document.getElementById('combustivel').value,
+                freios: document.getElementById('freios').value,
+                equipamentos: document.getElementById('equipamentos').value,
+                cintos: document.getElementById('cintos').value,
+                limpeza: document.getElementById('limpeza').value,
                 obs: document.getElementById('obs').value,
                 fotoBase64: fotoBase64
             };
