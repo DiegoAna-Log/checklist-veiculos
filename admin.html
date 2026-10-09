@@ -336,7 +336,8 @@
                                 <div>
                                     <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Posição / Eixo</label>
                                     <select id="pneu-posicao" class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
-                                        <option value="Todos (4 Pneus)">Todos (4 Pneus)</option>
+                                        <option value="Dois Dianteiros">Dois Dianteiros</option>
+                                        <option value="Dois Traseiros">Dois Traseiros</option>
                                         <option value="Dianteiro Esquerdo">Dianteiro Esquerdo</option>
                                         <option value="Dianteiro Direito">Dianteiro Direito</option>
                                         <option value="Traseiro Esquerdo">Traseiro Esquerdo</option>
@@ -446,7 +447,12 @@
                     <h3 id="dossie-placa" class="text-2xl font-bold text-orange-400">ABC-1234</h3>
                     <p id="dossie-sub" class="text-slate-400 text-sm">Chevrolet Onix 2023</p>
                 </div>
-                <button onclick="closeDossieModal()" class="text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+                <div class="flex items-center gap-3">
+                    <button id="btn-pdf-dossie" onclick="" class="px-3 py-1.5 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 shadow-md">
+                        <i class="fa-solid fa-file-pdf"></i> Imprimir / PDF Oficina
+                    </button>
+                    <button onclick="closeDossieModal()" class="text-slate-400 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+                </div>
             </div>
 
             <div id="dossie-content" class="space-y-6">
@@ -791,7 +797,6 @@
             `).join('');
         }
 
-        // LÓGICA DE CORES DA VALIDADE DE DOCUMENTOS (VERDE >30d, AMARELO <=30d, VERMELHO <=10d/VENCIDO)
         function getDocBadge(dateStr) {
             if (!dateStr) return `<span class="text-slate-500">-</span>`;
             
@@ -839,6 +844,7 @@
 
             document.getElementById('dossie-placa').innerText = `Veículo ${vehicle.placa}`;
             document.getElementById('dossie-sub').innerText = `${vehicle.marca} ${vehicle.modelo} (${vehicle.ano}) • Status: ${vehicle.status}`;
+            document.getElementById('btn-pdf-dossie').setAttribute('onclick', `gerarPDFDossie('${vehicle.placa}')`);
 
             const vehicleChecklists = checklists.filter(c => c.placa === placa);
             const vehiclePneus = pneus.filter(p => p.placa === placa);
@@ -940,6 +946,147 @@
             const modal = document.getElementById('dossie-modal');
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+        }
+
+        // GERADOR DE DOSSIÊ EM PDF PARA OFICINA
+        function gerarPDFDossie(placa) {
+            const vehicle = vehicles.find(v => v.placa === placa);
+            if (!vehicle) return;
+
+            const vehicleChecklists = checklists.filter(c => c.placa === placa);
+            const vehiclePneus = pneus.filter(p => p.placa === placa);
+            const vehicleCustos = manutencaoList.filter(m => m.placa === placa);
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Ficha do Veículo ${vehicle.placa} - Ana-Log</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; color: #111; margin: 20px; font-size: 12px; }
+                        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #E85A22; padding-bottom: 10px; margin-bottom: 20px; }
+                        .title { font-size: 18px; font-weight: bold; color: #E85A22; margin: 0; }
+                        .subtitle { font-size: 11px; color: #555; text-transform: uppercase; font-weight: bold; }
+                        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
+                        .box { border: 1px solid #ddd; padding: 8px 12px; border-radius: 6px; background: #f9f9f9; }
+                        .box-title { font-size: 9px; text-transform: uppercase; color: #666; font-weight: bold; margin-bottom: 2px; }
+                        .box-val { font-size: 13px; font-weight: bold; color: #111; }
+                        section { margin-bottom: 20px; }
+                        section h3 { font-size: 12px; text-transform: uppercase; color: #E85A22; border-bottom: 1px solid #ddd; padding-bottom: 4px; margin-bottom: 8px; }
+                        table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 10px; }
+                        th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; }
+                        th { background: #f0f0f0; font-weight: bold; }
+                        .signatures { margin-top: 50px; display: flex; justify-content: space-between; }
+                        .sig-line { width: 45%; border-top: 1px solid #000; text-align: center; padding-top: 5px; font-size: 11px; font-weight: bold; }
+                        @media print { body { margin: 0; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div>
+                            <h1 class="title">FICHA TÉCNICA / DOSSIÊ DE MANUTENÇÃO</h1>
+                            <p class="subtitle">Ana-Log • Entregando Compromisso</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <strong>Emissão:</strong> ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}<br>
+                            <span style="font-size: 10px; color: #666;">Documento de Operação de Frota</span>
+                        </div>
+                    </div>
+
+                    <div class="grid">
+                        <div class="box"><div class="box-title">Placa</div><div class="box-val">${vehicle.placa}</div></div>
+                        <div class="box"><div class="box-title">Marca / Modelo</div><div class="box-val">${vehicle.marca} ${vehicle.modelo}</div></div>
+                        <div class="box"><div class="box-title">KM Atual</div><div class="box-val">${vehicle.kmAtual ? vehicle.kmAtual.toLocaleString('pt-BR') : 0} km</div></div>
+                        <div class="box"><div class="box-title">Status Atual</div><div class="box-val">${vehicle.status}</div></div>
+                    </div>
+
+                    <section>
+                        <h3>🛢️ Metas de Troca de Óleo</h3>
+                        <p><strong>KM da Próxima Troca de Óleo:</strong> ${vehicle.kmProximaTroca ? vehicle.kmProximaTroca.toLocaleString('pt-BR') : 0} km</p>
+                    </section>
+
+                    <section>
+                        <h3>🛞 Histórico de Troca de Pneus</h3>
+                        ${vehiclePneus.length === 0 ? '<p style="color:#777;">Nenhum registo de pneu enviado.</p>' : `
+                            <table>
+                                <thead>
+                                    <tr><th>Data</th><th>Marca / Modelo</th><th>Posição</th><th>KM</th><th>Valor (R$)</th></tr>
+                                </thead>
+                                <tbody>
+                                    ${vehiclePneus.map(p => `
+                                        <tr>
+                                            <td>${p.data}</td>
+                                            <td>${p.marcaPneu}</td>
+                                            <td>${p.posicao}</td>
+                                            <td>${p.kmTroca} km</td>
+                                            <td>R$ ${Number(p.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `}
+                    </section>
+
+                    <section>
+                        <h3>💰 Histórico de Manutenções & Custos</h3>
+                        ${vehicleCustos.length === 0 ? '<p style="color:#777;">Nenhuma manutenção registrada.</p>' : `
+                            <table>
+                                <thead>
+                                    <tr><th>Data</th><th>Tipo</th><th>Descrição</th><th>KM</th><th>Oficina/Posto</th><th>Valor (R$)</th></tr>
+                                </thead>
+                                <tbody>
+                                    ${vehicleCustos.map(m => `
+                                        <tr>
+                                            <td>${m.data}</td>
+                                            <td>${m.tipo}</td>
+                                            <td>${m.descricao}</td>
+                                            <td>${m.km} km</td>
+                                            <td>${m.oficina || '-'}</td>
+                                            <td>R$ ${Number(m.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `}
+                    </section>
+
+                    <section>
+                        <h3>📋 Observações Recentes do Motorista</h3>
+                        ${vehicleChecklists.length === 0 ? '<p style="color:#777;">Nenhum checklist registrado.</p>' : `
+                            <table>
+                                <thead>
+                                    <tr><th>Data</th><th>Motorista</th><th>KM</th><th>Freios</th><th>Pneus</th><th>Observação</th></tr>
+                                </thead>
+                                <tbody>
+                                    ${vehicleChecklists.slice(0, 5).map(c => `
+                                        <tr>
+                                            <td>${c.data}</td>
+                                            <td>${c.motorista}</td>
+                                            <td>${c.km} km</td>
+                                            <td>${c.freios || 'OK'}</td>
+                                            <td>${c.pneus || 'OK'}</td>
+                                            <td>${c.obs || '-'}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `}
+                    </section>
+
+                    <div class="signatures">
+                        <div class="sig-line">Gestão de Frota (Ana-Log)</div>
+                        <div class="sig-line">Mecânico / Oficina Responsável</div>
+                    </div>
+
+                    <script>
+                        window.onload = function() { window.print(); }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
         }
 
         function closeDossieModal() {
