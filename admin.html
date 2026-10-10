@@ -77,6 +77,9 @@
                 <button onclick="switchTab('pneus_custos')" id="btn-pneus_custos" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
                     <i class="fa-solid fa-coins w-6 text-orange-500"></i> Pneus & Custos
                 </button>
+                <button onclick="switchTab('multas')" id="btn-multas" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
+                    <i class="fa-solid fa-triangle-exclamation w-6 text-orange-500"></i> Multas & Infrações
+                </button>
                 <button onclick="switchTab('relatorios')" id="btn-relatorios" class="nav-btn w-full flex items-center px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-800 hover:text-white transition">
                     <i class="fa-solid fa-file-contract w-6 text-orange-500"></i> Relatórios
                 </button>
@@ -410,6 +413,100 @@
                 </div>
             </section>
 
+            <!-- ABA: MULTAS & INFRAÇÕES -->
+            <section id="tab-multas" class="tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Formulário de Multa -->
+                    <div class="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
+                        <h4 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-triangle-exclamation text-orange-500"></i> Registrar Multa / Infração</h4>
+                        <form id="form-multa" onsubmit="handleMultaSubmit(event)" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Veículo</label>
+                                <select id="multa-placa-select" onchange="identificarMotoristaMulta()" required class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                                    <!-- Preenchido via JS -->
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Data e Hora da Infração</label>
+                                <input type="datetime-local" id="multa-datahora" onchange="identificarMotoristaMulta()" required class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                            </div>
+                            
+                            <!-- Campo com Identificação Automática do Motorista -->
+                            <div class="bg-slate-950 p-3 rounded-lg border border-slate-800">
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Motorista Responsável</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="text" id="multa-motorista" placeholder="Clique no botão para identificar" required class="w-full p-2 bg-slate-900 border border-slate-800 text-orange-400 font-bold rounded text-sm focus:outline-none">
+                                    <button type="button" onclick="identificarMotoristaMulta()" title="Buscar nos Checklists" class="px-3 py-2 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded transition whitespace-nowrap">
+                                        <i class="fa-solid fa-user-check mr-1"></i> Buscar
+                                    </button>
+                                </div>
+                                <p id="multa-motorista-info" class="text-[11px] text-slate-400 mt-1">Sugerido com base no checklist do dia/horário.</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Descrição da Infração</label>
+                                <input type="text" id="multa-desc" required placeholder="Ex: Excesso de velocidade (até 20%)" class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Local da Infração</label>
+                                <input type="text" id="multa-local" placeholder="Ex: Av. Brasil, KM 12 - Rio de Janeiro" class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Valor (R$)</label>
+                                    <input type="number" step="0.01" id="multa-valor" required placeholder="Ex: 130.16" class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Pontos CNH</label>
+                                    <input type="number" id="multa-pontos" required placeholder="Ex: 4" class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Status de Pagamento</label>
+                                <select id="multa-status" class="w-full p-2.5 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500">
+                                    <option value="Pendente">Pendente</option>
+                                    <option value="Pago pela Empresa">Pago pela Empresa</option>
+                                    <option value="Cobrado do Motorista">Cobrado do Motorista</option>
+                                    <option value="Em Recurso">Em Recurso</option>
+                                </select>
+                            </div>
+
+                            <button type="submit" class="w-full py-2.5 bg-orange-600 hover:bg-orange-500 text-white font-bold rounded-lg transition">Salvar Multa na Planilha</button>
+                        </form>
+                    </div>
+
+                    <!-- Tabela de Multas -->
+                    <div class="lg:col-span-2 bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <h4 class="text-lg font-bold text-white">Histórico de Multas Registradas</h4>
+                            <span class="text-xs text-slate-400">Total: <strong id="total-multas-count" class="text-orange-400">0</strong></span>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-xs">
+                                <thead class="bg-slate-950 text-slate-400 uppercase border-b border-slate-800">
+                                    <tr>
+                                        <th class="p-3">Data/Hora</th>
+                                        <th class="p-3">Placa</th>
+                                        <th class="p-3">Motorista</th>
+                                        <th class="p-3">Infração</th>
+                                        <th class="p-3">Valor</th>
+                                        <th class="p-3">Pontos</th>
+                                        <th class="p-3">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="multas-table-body" class="divide-y divide-slate-800 text-slate-200">
+                                    <!-- Preenchido via JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- ABA: RELATÓRIOS -->
             <section id="tab-relatorios" class="tab-content hidden space-y-6">
                 <div class="flex justify-between items-center">
@@ -492,6 +589,7 @@
         let checklists = [];
         let pneus = [];
         let manutencaoList = [];
+        let multas = [];
 
         let chartStatusDashInstance = null;
         let chartBrandsInstance = null;
@@ -530,7 +628,8 @@
                 carregarVeiculosDaPlanilha(), 
                 carregarChecklistsDaPlanilha(),
                 carregarPneusDaPlanilha(),
-                carregarManutencaoDaPlanilha()
+                carregarManutencaoDaPlanilha(),
+                carregarMultasDaPlanilha()
             ]);
             updateDashboard();
             populerSelectsVeiculos();
@@ -580,6 +679,7 @@
                 
                 if (Array.isArray(data) && data.length > 1) {
                     checklists = data.slice(1).map(row => ({
+                        dataObj: row[0] ? new Date(row[0]) : null,
                         data: row[0] ? new Date(row[0]).toLocaleString('pt-BR') : '',
                         placa: row[1] || '',
                         motorista: row[2] || '',
@@ -645,8 +745,31 @@
             }
         }
 
+        async function carregarMultasDaPlanilha() {
+            if (!SCRIPT_URL) return;
+            try {
+                const response = await fetch(`${SCRIPT_URL}?action=getMultas`);
+                const data = await response.json();
+                if (Array.isArray(data) && data.length > 1) {
+                    multas = data.slice(1).map(r => ({
+                        dataHora: r[0] ? new Date(r[0]).toLocaleString('pt-BR') : '',
+                        placa: r[1] || '',
+                        motorista: r[2] || 'Não Identificado',
+                        descricao: r[3] || '',
+                        local: r[4] || '',
+                        valor: r[5] || 0,
+                        pontos: r[6] || 0,
+                        statusPagamento: r[7] || 'Pendente'
+                    })).reverse();
+                    renderMultasTable();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
         function populerSelectsVeiculos() {
-            const selects = [document.getElementById('pneu-placa-select'), document.getElementById('manut-placa-select')];
+            const selects = [document.getElementById('pneu-placa-select'), document.getElementById('manut-placa-select'), document.getElementById('multa-placa-select')];
             selects.forEach(s => {
                 if (!s) return;
                 s.innerHTML = vehicles.map(v => `<option value="${v.placa}">${v.placa} - ${v.marca} ${v.modelo}</option>`).join('');
@@ -670,6 +793,7 @@
                 'veiculos': 'Lista de Veículos',
                 'cadastro': 'Cadastrar / Editar Veículo',
                 'pneus_custos': 'Pneus & Custos Operacionais',
+                'multas': 'Gestão de Multas & Infrações',
                 'relatorios': 'Relatórios & Métricas'
             };
             document.getElementById('page-title').innerText = titles[tabId];
@@ -677,6 +801,7 @@
             if (tabId === 'dashboard') updateDashboard();
             if (tabId === 'checklists') renderChecklistsTable();
             if (tabId === 'veiculos') renderVehiclesTable();
+            if (tabId === 'multas') renderMultasTable();
             if (tabId === 'relatorios') renderReports();
         }
 
@@ -797,6 +922,101 @@
             `).join('');
         }
 
+        function renderMultasTable() {
+            document.getElementById('total-multas-count').innerText = multas.length;
+            const tbody = document.getElementById('multas-table-body');
+            
+            if (multas.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">Nenhuma multa registrada.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = multas.map(m => `
+                <tr class="hover:bg-slate-800/80 transition border-b border-slate-800">
+                    <td class="p-3 text-slate-400">${m.dataHora}</td>
+                    <td class="p-3 font-bold text-orange-400">${m.placa}</td>
+                    <td class="p-3 font-semibold text-white">${m.motorista}</td>
+                    <td class="p-3">${m.descricao} <br><span class="text-[10px] text-slate-500">${m.local || ''}</span></td>
+                    <td class="p-3 font-bold text-rose-400">R$ ${Number(m.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                    <td class="p-3 text-center"><span class="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded">${m.pontos} pts</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${m.statusPagamento === 'Pendente' ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'}">${m.statusPagamento}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // 🔍 IDENTIFICAÇÃO AUTOMÁTICA DO MOTORISTA PELA DATA/HORA
+        function identificarMotoristaMulta() {
+            const placa = document.getElementById('multa-placa-select').value;
+            const dataHoraVal = document.getElementById('multa-datahora').value;
+            const inputMotorista = document.getElementById('multa-motorista');
+            const infoText = document.getElementById('multa-motorista-info');
+
+            if (!placa || !dataHoraVal) {
+                infoText.innerText = "Selecione a placa e a data/hora para buscar o motorista.";
+                return;
+            }
+
+            const dataInfracao = new Date(dataHoraVal);
+            
+            // Buscar checklists da mesma placa ordenados pelo mais próximo da data/hora
+            const checklistsVeiculo = checklists.filter(c => c.placa.toUpperCase() === placa.toUpperCase() && c.dataObj);
+
+            if (checklistsVeiculo.length === 0) {
+                inputMotorista.value = "Não Identificado";
+                infoText.innerText = "Nenhum checklist registrado para este veículo.";
+                return;
+            }
+
+            // Encontrar o checklist mais recente antes da infração ou o mais próximo do dia
+            let motoristaEncontrado = null;
+            let menorDiferenca = Infinity;
+
+            checklistsVeiculo.forEach(c => {
+                const diffMs = Math.abs(dataInfracao - c.dataObj);
+                if (diffMs < menorDiferenca) {
+                    menorDiferenca = diffMs;
+                    motoristaEncontrado = c.motorista;
+                }
+            });
+
+            if (motoristaEncontrado) {
+                inputMotorista.value = motoristaEncontrado;
+                infoText.innerText = `✅ Motorista "${motoristaEncontrado}" identificado com base no checklist próximo.`;
+            } else {
+                inputMotorista.value = "Não Identificado";
+                infoText.innerText = "Não foi possível vincular a um checklist.";
+            }
+        }
+
+        async function handleMultaSubmit(e) {
+            e.preventDefault();
+            const payload = {
+                action: "registrarMulta",
+                placa: document.getElementById('multa-placa-select').value,
+                dataHoraInfracao: document.getElementById('multa-datahora').value,
+                motorista: document.getElementById('multa-motorista').value,
+                descricao: document.getElementById('multa-desc').value,
+                local: document.getElementById('multa-local').value,
+                valor: document.getElementById('multa-valor').value,
+                pontos: document.getElementById('multa-pontos').value,
+                statusPagamento: document.getElementById('multa-status').value
+            };
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                alert("✅ Multa registrada com sucesso!");
+                document.getElementById('form-multa').reset();
+                await carregarDados();
+            } catch (err) {
+                alert("❌ Erro ao registrar multa.");
+            }
+        }
+
         function getDocBadge(dateStr) {
             if (!dateStr) return `<span class="text-slate-500">-</span>`;
             
@@ -837,7 +1057,7 @@
             return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-600 text-white font-bold animate-pulse">🔴 VENCIDO (+${vencido.toLocaleString('pt-BR')} km)</span>`;
         }
 
-        // ABRIR DOSSIÊ DO VEÍCULO
+        // ABRIR DOSSIÊ DO VEÍCULO (COM HISTÓRICO DE MULTAS)
         function openDossieModal(placa) {
             const vehicle = vehicles.find(v => v.placa === placa);
             if (!vehicle) return;
@@ -849,10 +1069,12 @@
             const vehicleChecklists = checklists.filter(c => c.placa === placa);
             const vehiclePneus = pneus.filter(p => p.placa === placa);
             const vehicleCustos = manutencaoList.filter(m => m.placa === placa);
+            const vehicleMultas = multas.filter(m => m.placa === placa);
 
             const totalCustosPneus = vehiclePneus.reduce((acc, p) => acc + Number(p.valor), 0);
             const totalOutrosCustos = vehicleCustos.reduce((acc, m) => acc + Number(m.valor), 0);
-            const totalInvestido = totalCustosPneus + totalOutrosCustos;
+            const totalMultasVal = vehicleMultas.reduce((acc, m) => acc + Number(m.valor), 0);
+            const totalInvestido = totalCustosPneus + totalOutrosCustos + totalMultasVal;
 
             const content = document.getElementById('dossie-content');
             content.innerHTML = `
@@ -867,23 +1089,41 @@
                         <p class="text-lg font-bold text-orange-400">${vehicle.kmProximaTroca ? vehicle.kmProximaTroca.toLocaleString('pt-BR') : 0} km</p>
                     </div>
                     <div>
-                        <p class="text-xs text-slate-400 uppercase font-semibold">Total Investido</p>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">Total Investido (com Multas)</p>
                         <p class="text-lg font-bold text-emerald-400">R$ ${totalInvestido.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</p>
                     </div>
                     <div>
-                        <p class="text-xs text-slate-400 uppercase font-semibold">Total Checklists</p>
-                        <p class="text-lg font-bold text-blue-400">${vehicleChecklists.length}</p>
+                        <p class="text-xs text-slate-400 uppercase font-semibold">Multas Registradas</p>
+                        <p class="text-lg font-bold text-rose-400">${vehicleMultas.length}</p>
                     </div>
                 </div>
 
-                <!-- Documentos -->
-                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
-                    <h4 class="text-sm font-bold text-orange-400 uppercase">📅 Validade de Documentos</h4>
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                        <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">IPVA: ${getDocBadge(vehicle.dataIpva)}</div>
-                        <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">Inspeção: ${getDocBadge(vehicle.dataInspecao)}</div>
-                        <div class="p-2.5 bg-slate-900 rounded-lg border border-slate-800">Seguro: ${getDocBadge(vehicle.dataSeguro)}</div>
-                    </div>
+                <!-- Multas Registradas -->
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+                    <h4 class="text-sm font-bold text-white uppercase flex justify-between">
+                        <span>🚦 Multas / Infrações (${vehicleMultas.length})</span>
+                        <span class="text-xs text-rose-400">R$ ${totalMultasVal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                    </h4>
+                    ${vehicleMultas.length === 0 ? '<p class="text-xs text-slate-500">Nenhuma multa registrada para este veículo.</p>' : `
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-900 text-slate-400 uppercase">
+                                    <tr><th class="p-2">Data/Hora</th><th class="p-2">Motorista</th><th class="p-2">Infração</th><th class="p-2">Valor</th><th class="p-2">Status</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-800 text-slate-300">
+                                    ${vehicleMultas.map(m => `
+                                        <tr>
+                                            <td class="p-2">${m.dataHora}</td>
+                                            <td class="p-2 font-bold text-orange-400">${m.motorista}</td>
+                                            <td class="p-2">${m.descricao}</td>
+                                            <td class="p-2 text-rose-400 font-semibold">R$ ${Number(m.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                                            <td class="p-2">${m.statusPagamento}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    `}
                 </div>
 
                 <!-- Histórico de Pneus -->
@@ -948,7 +1188,6 @@
             modal.classList.add('flex');
         }
 
-        // GERADOR DE DOSSIÊ EM PDF PARA OFICINA
         function gerarPDFDossie(placa) {
             const vehicle = vehicles.find(v => v.placa === placa);
             if (!vehicle) return;
@@ -956,6 +1195,7 @@
             const vehicleChecklists = checklists.filter(c => c.placa === placa);
             const vehiclePneus = pneus.filter(p => p.placa === placa);
             const vehicleCustos = manutencaoList.filter(m => m.placa === placa);
+            const vehicleMultas = multas.filter(m => m.placa === placa);
 
             const printWindow = window.open('', '_blank');
             printWindow.document.write(`
@@ -1003,8 +1243,25 @@
                     </div>
 
                     <section>
-                        <h3>🛢️ Metas de Troca de Óleo</h3>
-                        <p><strong>KM da Próxima Troca de Óleo:</strong> ${vehicle.kmProximaTroca ? vehicle.kmProximaTroca.toLocaleString('pt-BR') : 0} km</p>
+                        <h3>🚦 Multas & Infrações Registradas</h3>
+                        ${vehicleMultas.length === 0 ? '<p style="color:#777;">Nenhuma multa registrada.</p>' : `
+                            <table>
+                                <thead>
+                                    <tr><th>Data/Hora</th><th>Motorista Responsável</th><th>Infração</th><th>Valor</th><th>Status</th></tr>
+                                </thead>
+                                <tbody>
+                                    ${vehicleMultas.map(m => `
+                                        <tr>
+                                            <td>${m.dataHora}</td>
+                                            <td>${m.motorista}</td>
+                                            <td>${m.descricao}</td>
+                                            <td>R$ ${Number(m.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                                            <td>${m.statusPagamento}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `}
                     </section>
 
                     <section>
@@ -1045,29 +1302,6 @@
                                             <td>${m.km} km</td>
                                             <td>${m.oficina || '-'}</td>
                                             <td>R$ ${Number(m.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        `}
-                    </section>
-
-                    <section>
-                        <h3>📋 Observações Recentes do Motorista</h3>
-                        ${vehicleChecklists.length === 0 ? '<p style="color:#777;">Nenhum checklist registrado.</p>' : `
-                            <table>
-                                <thead>
-                                    <tr><th>Data</th><th>Motorista</th><th>KM</th><th>Freios</th><th>Pneus</th><th>Observação</th></tr>
-                                </thead>
-                                <tbody>
-                                    ${vehicleChecklists.slice(0, 5).map(c => `
-                                        <tr>
-                                            <td>${c.data}</td>
-                                            <td>${c.motorista}</td>
-                                            <td>${c.km} km</td>
-                                            <td>${c.freios || 'OK'}</td>
-                                            <td>${c.pneus || 'OK'}</td>
-                                            <td>${c.obs || '-'}</td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
