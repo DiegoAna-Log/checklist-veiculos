@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -413,7 +414,7 @@
                 </div>
             </section>
 
-            <!-- ABA: MULTAS & INFRAÇÕES -->
+            <!-- ABA: MULTAS & INFRAÇÕES COM FILTRO E RELATÓRIO PDF -->
             <section id="tab-multas" class="tab-content hidden space-y-6">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <!-- Formulário de Multa -->
@@ -478,11 +479,40 @@
                         </form>
                     </div>
 
-                    <!-- Tabela de Multas -->
+                    <!-- Tabela de Multas com Filtros e Relatório -->
                     <div class="lg:col-span-2 bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
-                        <div class="flex justify-between items-center">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <h4 class="text-lg font-bold text-white">Histórico de Multas Registradas</h4>
-                            <span class="text-xs text-slate-400">Total: <strong id="total-multas-count" class="text-orange-400">0</strong></span>
+                            <button onclick="gerarRelatorioMultasPDF()" class="px-3.5 py-2 bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5 shadow-md">
+                                <i class="fa-solid fa-file-pdf"></i> Imprimir / Gerar PDF de Multas
+                            </button>
+                        </div>
+
+                        <!-- Barra de Filtros -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-950 p-3 rounded-lg border border-slate-800">
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Filtrar por Motorista ou Placa</label>
+                                <input type="text" id="filter-multas-query" oninput="renderMultasTable()" placeholder="Digite a placa ou o nome..." class="w-full p-2 bg-slate-900 border border-slate-800 text-white text-xs rounded focus:ring-1 focus:ring-orange-500 focus:outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Status Pagamento</label>
+                                <select id="filter-multas-status" onchange="renderMultasTable()" class="w-full p-2 bg-slate-900 border border-slate-800 text-white text-xs rounded focus:ring-1 focus:ring-orange-500 focus:outline-none">
+                                    <option value="">Todos os Status</option>
+                                    <option value="Pendente">Pendente</option>
+                                    <option value="Pago pela Empresa">Pago pela Empresa</option>
+                                    <option value="Cobrado do Motorista">Cobrado do Motorista</option>
+                                    <option value="Em Recurso">Em Recurso</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Totais Acumulados -->
+                        <div class="flex justify-between items-center text-xs text-slate-400 bg-slate-950/50 p-2.5 rounded-lg border border-slate-800/80">
+                            <span>Exibindo: <strong id="total-multas-count" class="text-orange-400">0</strong> multas</span>
+                            <div class="flex gap-4">
+                                <span>Total R$: <strong id="total-multas-valor" class="text-rose-400">R$ 0,00</strong></span>
+                                <span>Pontos: <strong id="total-multas-pontos" class="text-amber-400">0 pts</strong></span>
+                            </div>
                         </div>
 
                         <div class="overflow-x-auto">
@@ -757,8 +787,8 @@
                         motorista: r[2] || 'Não Identificado',
                         descricao: r[3] || '',
                         local: r[4] || '',
-                        valor: r[5] || 0,
-                        pontos: r[6] || 0,
+                        valor: Number(r[5]) || 0,
+                        pontos: Number(r[6]) || 0,
                         statusPagamento: r[7] || 'Pendente'
                     })).reverse();
                     renderMultasTable();
@@ -922,16 +952,32 @@
             `).join('');
         }
 
+        // RENDERIZAR TABELA DE MULTAS COM FILTROS E TOTAIS
         function renderMultasTable() {
-            document.getElementById('total-multas-count').innerText = multas.length;
+            const query = (document.getElementById('filter-multas-query')?.value || '').toLowerCase();
+            const statusFilter = document.getElementById('filter-multas-status')?.value || '';
+
+            const filtered = multas.filter(m => {
+                const matchQuery = m.placa.toLowerCase().includes(query) || m.motorista.toLowerCase().includes(query);
+                const matchStatus = statusFilter === '' || m.statusPagamento === statusFilter;
+                return matchQuery && matchStatus;
+            });
+
+            const totalVal = filtered.reduce((acc, m) => acc + Number(m.valor), 0);
+            const totalPts = filtered.reduce((acc, m) => acc + Number(m.pontos), 0);
+
+            document.getElementById('total-multas-count').innerText = filtered.length;
+            document.getElementById('total-multas-valor').innerText = `R$ ${totalVal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            document.getElementById('total-multas-pontos').innerText = `${totalPts} pts`;
+
             const tbody = document.getElementById('multas-table-body');
             
-            if (multas.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">Nenhuma multa registrada.</td></tr>`;
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-6 text-center text-slate-400">Nenhuma multa localizada com os filtros selecionados.</td></tr>`;
                 return;
             }
 
-            tbody.innerHTML = multas.map(m => `
+            tbody.innerHTML = filtered.map(m => `
                 <tr class="hover:bg-slate-800/80 transition border-b border-slate-800">
                     <td class="p-3 text-slate-400">${m.dataHora}</td>
                     <td class="p-3 font-bold text-orange-400">${m.placa}</td>
@@ -942,6 +988,103 @@
                     <td class="p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${m.statusPagamento === 'Pendente' ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'}">${m.statusPagamento}</span></td>
                 </tr>
             `).join('');
+        }
+
+        // 📄 GERADOR DE RELATÓRIO PDF DE MULTAS FILTRADAS
+        function gerarRelatorioMultasPDF() {
+            const query = (document.getElementById('filter-multas-query')?.value || '').toLowerCase();
+            const statusFilter = document.getElementById('filter-multas-status')?.value || '';
+
+            const filtered = multas.filter(m => {
+                const matchQuery = m.placa.toLowerCase().includes(query) || m.motorista.toLowerCase().includes(query);
+                const matchStatus = statusFilter === '' || m.statusPagamento === statusFilter;
+                return matchQuery && matchStatus;
+            });
+
+            if (filtered.length === 0) {
+                alert('Nenhuma multa para imprimir com os filtros selecionados.');
+                return;
+            }
+
+            const totalVal = filtered.reduce((acc, m) => acc + Number(m.valor), 0);
+            const totalPts = filtered.reduce((acc, m) => acc + Number(m.pontos), 0);
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Relatório de Multas e Infrações - Ana-Log</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; color: #111; margin: 20px; font-size: 11px; }
+                        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #E85A22; padding-bottom: 10px; margin-bottom: 15px; }
+                        .title { font-size: 16px; font-weight: bold; color: #E85A22; margin: 0; }
+                        .subtitle { font-size: 10px; color: #555; text-transform: uppercase; font-weight: bold; }
+                        .summary { display: flex; gap: 15px; margin-bottom: 15px; background: #f8fafc; padding: 10px; border: 1px solid #e2e8f0; border-radius: 6px; }
+                        .summary-box { flex: 1; }
+                        .summary-box span { display: block; font-size: 9px; text-transform: uppercase; color: #64748b; font-weight: bold; }
+                        .summary-box strong { font-size: 13px; color: #0f172a; }
+                        table { width: 100%; border-collapse: collapse; font-size: 10px; }
+                        th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: left; }
+                        th { background: #f1f5f9; font-weight: bold; text-transform: uppercase; }
+                        .val { color: #dc2626; font-weight: bold; }
+                        .pts { font-weight: bold; color: #d97706; }
+                        @media print { body { margin: 0; } }
+                    </style>
+                </head>
+                <body>
+                    <div class="header">
+                        <div>
+                            <h1 class="title">RELATÓRIO DE MULTAS E INFRAÇÕES</h1>
+                            <p class="subtitle">Ana-Log • Entregando Compromisso</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <strong>Emissão:</strong> ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}<br>
+                            <span style="font-size: 9px; color: #666;">Filtro: ${query ? '"' + query + '"' : 'Todos'} | Status: ${statusFilter || 'Todos'}</span>
+                        </div>
+                    </div>
+
+                    <div class="summary">
+                        <div class="summary-box"><span>Total Registros</span><strong>${filtered.length} multas</strong></div>
+                        <div class="summary-box"><span>Valor Total Acumulado</span><strong style="color:#dc2626;">R$ ${totalVal.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</strong></div>
+                        <div class="summary-box"><span>Pontuação CNH Acumulada</span><strong style="color:#d97706;">${totalPts} pontos</strong></div>
+                    </div>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data/Hora</th>
+                                <th>Placa</th>
+                                <th>Motorista Responsável</th>
+                                <th>Infração / Local</th>
+                                <th>Valor</th>
+                                <th>Pontos</th>
+                                <th>Status Pagamento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${filtered.map(m => `
+                                <tr>
+                                    <td>${m.dataHora}</td>
+                                    <td><strong>${m.placa}</strong></td>
+                                    <td>${m.motorista}</td>
+                                    <td>${m.descricao} <br><small style="color:#64748b;">${m.local || ''}</small></td>
+                                    <td class="val">R$ ${Number(m.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
+                                    <td class="pts">${m.pontos} pts</td>
+                                    <td>${m.statusPagamento}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+
+                    <script>
+                        window.onload = function() { window.print(); }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
         }
 
         // 🔍 IDENTIFICAÇÃO AUTOMÁTICA DO MOTORISTA PELA DATA/HORA
@@ -958,7 +1101,6 @@
 
             const dataInfracao = new Date(dataHoraVal);
             
-            // Buscar checklists da mesma placa ordenados pelo mais próximo da data/hora
             const checklistsVeiculo = checklists.filter(c => c.placa.toUpperCase() === placa.toUpperCase() && c.dataObj);
 
             if (checklistsVeiculo.length === 0) {
@@ -967,7 +1109,6 @@
                 return;
             }
 
-            // Encontrar o checklist mais recente antes da infração ou o mais próximo do dia
             let motoristaEncontrado = null;
             let menorDiferenca = Infinity;
 
