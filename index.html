@@ -34,7 +34,8 @@
                         <i class="fa-solid fa-chevron-down text-sm"></i>
                     </div>
                 </div>
-                <p id="qr-badge" class="text-xs text-emerald-400 mt-1 hidden"><i class="fa-solid fa-lock mr-1"></i> Veículo fixado via QR Code (Bloqueado)</p>
+                <p id="qr-badge" class="text-xs text-emerald-400 mt-1 hidden"><i class="fa-solid fa-lock mr-1"></i> Veículo validado pelo QR Code</p>
+                <p id="qr-error" class="text-xs text-rose-400 mt-2">Leia o QR Code fixado no veículo para liberar o checklist.</p>
             </div>
 
             <!-- MOTORISTA -->
@@ -49,7 +50,7 @@
                     <label class="block text-xs font-semibold uppercase text-slate-400">Quilometragem Atual (KM)</label>
                     <span id="ultimo-km-info" class="text-xs text-orange-400 font-medium hidden">Último: <span id="val-ultimo-km">0</span> km</span>
                 </div>
-                <input type="number" id="km" placeholder="Ex: 125000" oninput="validarKm()" required class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:outline-none focus:border-orange-500">
+                <input type="number" id="km" min="0" step="1" inputmode="numeric" placeholder="Ex: 125000" oninput="validarKm()" required class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:outline-none focus:border-orange-500">
                 <p id="km-error" class="text-xs text-rose-400 mt-1 hidden font-semibold"><i class="fa-solid fa-circle-exclamation mr-1"></i> O KM não pode ser menor que o último registrado!</p>
             </div>
 
@@ -149,7 +150,7 @@
             </div>
 
             <!-- BOTÃO DE ENVIO COM COR LARANJA ANA-LOG -->
-            <button type="submit" id="submit-btn" class="w-full py-3.5 bg-orange-600 hover:bg-orange-500 font-bold text-white rounded-lg transition duration-200 shadow-lg shadow-orange-950/50 flex items-center justify-center gap-2 text-lg">
+            <button type="submit" id="submit-btn" disabled class="w-full py-3.5 bg-orange-600 hover:bg-orange-500 font-bold text-white rounded-lg transition duration-200 shadow-lg shadow-orange-950/50 flex items-center justify-center gap-2 text-lg">
                 <i class="fa-solid fa-paper-plane"></i> Finalizar e Enviar Checklist
             </button>
         </form>
@@ -157,170 +158,199 @@
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwM3sTpWs0bR_sIi-rMKiT-9tD5qor0M9QMyIn-ZCz3iI_mvf-3w4yBg48of3RNTb7G/exec";
-
         let ultimoKmRegistrado = 0;
         let fotoBase64 = "";
+        let fotoPromise = Promise.resolve();
+        let fotoSelecionada = false;
+        let driverToken = "";
+        let placaValidada = "";
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            await carregarVeiculos();
-            verificarParametroUrl();
-        });
+        document.addEventListener('DOMContentLoaded', verificarParametroUrl);
 
-        async function carregarVeiculos() {
+        async function verificarParametroUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const placa = (params.get('placa') || '').trim().toUpperCase();
+            const token = (params.get('token') || '').trim();
             const select = document.getElementById('placa-select');
-            try {
-                const resp = await fetch(`${SCRIPT_URL}?action=getVeiculos`);
-                const data = await resp.json();
-                
-                if (Array.isArray(data) && data.length > 1) {
-                    select.innerHTML = '<option value="">-- Selecione o Veículo --</option>';
-                    data.slice(1).forEach(row => {
-                        const placa = row[0];
-                        const marcaModelo = `${row[1]} ${row[2]}`;
-                        if (placa) {
-                            select.innerHTML += `<option value="${placa}">${placa} - ${marcaModelo}</option>`;
-                        }
-                    });
-                } else {
-                    select.innerHTML = '<option value="">Nenhum veículo encontrado</option>';
-                }
-            } catch (err) {
-                console.error("Erro ao carregar veículos:", err);
-            }
-        }
+            const error = document.getElementById('qr-error');
+            const button = document.getElementById('submit-btn');
 
-        function verificarParametroUrl() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const placaUrl = urlParams.get('placa');
-
-            if (placaUrl) {
-                const select = document.getElementById('placa-select');
-                let encontrou = false;
-                
-                for (let i = 0; i < select.options.length; i++) {
-                    if (select.options[i].value.toUpperCase() === placaUrl.toUpperCase()) {
-                        select.selectedIndex = i;
-                        encontrou = true;
-                        break;
-                    }
-                }
-
-                if (!encontrou) {
-                    const opt = document.createElement('option');
-                    opt.value = placaUrl.toUpperCase();
-                    opt.text = `${placaUrl.toUpperCase()} (QR Code)`;
-                    select.add(opt);
-                    select.value = placaUrl.toUpperCase();
-                }
-
-                select.disabled = true;
-                select.classList.add('bg-slate-900', 'cursor-not-allowed', 'opacity-80');
-
-                document.getElementById('qr-badge').classList.remove('hidden');
-                aoSelecionarPlaca();
-            }
-        }
-
-        async function aoSelecionarPlaca() {
-            const placa = document.getElementById('placa-select').value;
-            const kmInfoBox = document.getElementById('ultimo-km-info');
-            const valUltimoKm = document.getElementById('val-ultimo-km');
-            
-            if (!placa) {
-                kmInfoBox.classList.add('hidden');
-                ultimoKmRegistrado = 0;
+            if (!/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(placa) || !/^[A-Fa-f0-9]{64}$/.test(token)) {
+                select.innerHTML = '<option value="">QR Code inválido</option>';
+                button.disabled = true;
                 return;
             }
 
+            driverToken = token;
+            placaValidada = placa;
+            const option = document.createElement('option');
+            option.value = placa;
+            option.textContent = placa;
+            select.replaceChildren(option);
+            select.value = placa;
+            select.disabled = true;
+
             try {
-                const resp = await fetch(`${SCRIPT_URL}?action=getUltimoKm&placa=${encodeURIComponent(placa)}`);
-                const data = await resp.json();
-                
-                ultimoKmRegistrado = data.ultimoKm || 0;
-                valUltimoKm.innerText = ultimoKmRegistrado;
-                kmInfoBox.classList.remove('hidden');
+                const url = new URL(SCRIPT_URL);
+                url.searchParams.set('action', 'getUltimoKm');
+                url.searchParams.set('placa', placa);
+                url.searchParams.set('token', token);
+                const response = await fetch(url.toString());
+                if (!response.ok) throw new Error('Falha de comunicação');
+                const result = await response.json();
+                if (result.status !== 'sucesso') throw new Error(result.message || 'QR Code inválido.');
+
+                ultimoKmRegistrado = Number(result.ultimoKm) || 0;
+                document.getElementById('val-ultimo-km').innerText = ultimoKmRegistrado.toLocaleString('pt-BR');
+                document.getElementById('ultimo-km-info').classList.remove('hidden');
+                document.getElementById('qr-badge').classList.remove('hidden');
+                error.classList.add('hidden');
                 validarKm();
             } catch (err) {
-                console.error("Erro ao buscar último KM:", err);
+                driverToken = '';
+                placaValidada = '';
+                button.disabled = true;
+                error.textContent = 'Não foi possível validar este QR Code. Confira sua conexão ou solicite um novo código à gestão.';
+                console.error(err);
             }
+        }
+
+        function aoSelecionarPlaca() {
+            // A placa só pode ser definida pelo QR validado no servidor.
         }
 
         function validarKm() {
-            const kmDigitado = parseInt(document.getElementById('km').value) || 0;
+            const raw = document.getElementById('km').value;
+            const kmDigitado = Number(raw);
+            const invalid = raw === '' || !Number.isInteger(kmDigitado) || kmDigitado < ultimoKmRegistrado;
             const kmError = document.getElementById('km-error');
             const submitBtn = document.getElementById('submit-btn');
-
-            if (ultimoKmRegistrado > 0 && kmDigitado < ultimoKmRegistrado) {
-                kmError.classList.remove('hidden');
-                submitBtn.disabled = true;
-                submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            } else {
-                kmError.classList.add('hidden');
-                submitBtn.disabled = false;
-                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-            }
+            kmError.classList.toggle('hidden', !invalid || raw === '');
+            if (raw !== '' && invalid) kmError.classList.remove('hidden');
+            submitBtn.disabled = !driverToken || invalid;
+            submitBtn.classList.toggle('opacity-50', submitBtn.disabled);
+            submitBtn.classList.toggle('cursor-not-allowed', submitBtn.disabled);
         }
 
         function previewImage(event) {
-            const file = event.target.files[0];
+            const file = event.target.files && event.target.files[0];
+            const preview = document.getElementById('image-preview');
+            fotoBase64 = '';
+            fotoSelecionada = !!file;
             if (!file) {
-                fotoBase64 = "";
-                document.getElementById('image-preview').classList.add('hidden');
+                preview.src = '';
+                preview.classList.add('hidden');
+                fotoPromise = Promise.resolve();
                 return;
             }
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                fotoBase64 = e.target.result;
-                const preview = document.getElementById('image-preview');
-                preview.src = fotoBase64;
+            if (!file.type.startsWith('image/')) {
+                event.target.value = '';
+                fotoSelecionada = false;
+                alert('Selecione um arquivo de imagem.');
+                return;
+            }
+            fotoPromise = comprimirImagem(file).then(dataUrl => {
+                fotoBase64 = dataUrl;
+                preview.src = dataUrl;
                 preview.classList.remove('hidden');
-            };
-            reader.readAsDataURL(file);
+            }).catch(err => {
+                fotoBase64 = '';
+                fotoSelecionada = false;
+                event.target.value = '';
+                preview.src = '';
+                preview.classList.add('hidden');
+                alert(err.message || 'Não foi possível preparar a foto.');
+            });
+        }
+
+        function comprimirImagem(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('Falha ao ler a foto.'));
+                reader.onload = () => {
+                    const img = new Image();
+                    img.onerror = () => reject(new Error('Arquivo de imagem inválido.'));
+                    img.onload = () => {
+                        const maxSide = 1600;
+                        const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
+                        const canvas = document.createElement('canvas');
+                        canvas.width = Math.max(1, Math.round(img.width * scale));
+                        canvas.height = Math.max(1, Math.round(img.height * scale));
+                        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                        canvas.toBlob(blob => {
+                            if (!blob) return reject(new Error('Não foi possível comprimir a foto.'));
+                            if (blob.size > 4 * 1024 * 1024) return reject(new Error('A foto continua grande. Tire outra com menor resolução.'));
+                            const out = new FileReader();
+                            out.onerror = () => reject(new Error('Falha ao preparar a foto.'));
+                            out.onload = () => resolve(out.result);
+                            out.readAsDataURL(blob);
+                        }, 'image/jpeg', 0.78);
+                    };
+                    img.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+            });
         }
 
         async function handleFormSubmit(e) {
             e.preventDefault();
-
+            if (!driverToken || !placaValidada) {
+                alert('Leia o QR Code do veículo antes de enviar.');
+                return;
+            }
             const submitBtn = document.getElementById('submit-btn');
+            const originalLabel = '<i class="fa-solid fa-paper-plane"></i> Finalizar e Enviar Checklist';
             submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> A enviar checklist...';
             submitBtn.disabled = true;
 
-            const payload = {
-                placa: document.getElementById('placa-select').value,
-                motorista: document.getElementById('motorista').value,
-                km: document.getElementById('km').value,
-                oleo_agua: document.getElementById('oleo_agua').value,
-                pneus: document.getElementById('pneus').value,
-                luzes: document.getElementById('luzes').value,
-                combustivel: document.getElementById('combustivel').value,
-                freios: document.getElementById('freios').value,
-                equipamentos: document.getElementById('equipamentos').value,
-                cintos: document.getElementById('cintos').value,
-                limpeza: document.getElementById('limpeza').value,
-                obs: document.getElementById('obs').value,
-                fotoBase64: fotoBase64
-            };
-
             try {
-                await fetch(SCRIPT_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: { "Content-Type": "application/json" },
+                await fotoPromise;
+                if (fotoSelecionada && !fotoBase64) throw new Error('A foto não foi preparada. Remova-a ou selecione outra.');
+                const payload = {
+                    action: 'registrarChecklist',
+                    token: driverToken,
+                    placa: placaValidada,
+                    motorista: document.getElementById('motorista').value.trim(),
+                    km: document.getElementById('km').value,
+                    oleo_agua: document.getElementById('oleo_agua').value,
+                    pneus: document.getElementById('pneus').value,
+                    luzes: document.getElementById('luzes').value,
+                    combustivel: document.getElementById('combustivel').value,
+                    freios: document.getElementById('freios').value,
+                    equipamentos: document.getElementById('equipamentos').value,
+                    cintos: document.getElementById('cintos').value,
+                    limpeza: document.getElementById('limpeza').value,
+                    obs: document.getElementById('obs').value,
+                    fotoBase64: fotoBase64
+                };
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                     body: JSON.stringify(payload)
                 });
+                if (!response.ok) throw new Error('Falha de comunicação com o servidor.');
+                const result = await response.json();
+                if (result.status !== 'sucesso') throw new Error(result.message || 'O checklist não foi salvo.');
 
-                alert("✅ Checklist Ana-Log enviado com sucesso!");
+                alert('✅ Checklist salvo com sucesso!');
+                const kmEnviado = Number(payload.km);
                 document.getElementById('checklist-form').reset();
+                document.getElementById('placa-select').value = placaValidada;
                 document.getElementById('image-preview').classList.add('hidden');
-                document.getElementById('ultimo-km-info').classList.add('hidden');
-                fotoBase64 = "";
+                document.getElementById('image-preview').src = '';
+                fotoBase64 = '';
+                fotoSelecionada = false;
+                fotoPromise = Promise.resolve();
+                ultimoKmRegistrado = Math.max(ultimoKmRegistrado, kmEnviado);
+                document.getElementById('val-ultimo-km').innerText = ultimoKmRegistrado.toLocaleString('pt-BR');
+                document.getElementById('ultimo-km-info').classList.remove('hidden');
             } catch (err) {
-                alert("❌ Erro ao enviar checklist.");
+                alert('❌ ' + (err.message || 'Não foi possível salvar. Seus dados continuam no formulário; tente novamente.'));
                 console.error(err);
             } finally {
-                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Finalizar e Enviar Checklist';
-                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalLabel;
+                validarKm();
             }
         }
     </script>
