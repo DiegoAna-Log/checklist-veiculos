@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
     
     <style>
         #lock-screen {
@@ -203,6 +204,9 @@
                                     <th class="p-4">Luzes</th>
                                     <th class="p-4">Combustível</th>
                                     <th class="p-4">Freios</th>
+                                    <th class="p-4">Equipamentos</th>
+                                    <th class="p-4">Cintos</th>
+                                    <th class="p-4">Limpeza</th>
                                     <th class="p-4">Observação</th>
                                     <th class="p-4 text-center">Foto</th>
                                 </tr>
@@ -636,7 +640,7 @@
             if (result.status === "erro" || result.status === "unauthorized") {
                 throw new Error(result.message || "Operação não autorizada");
             }
-            return result;
+            return result.data !== undefined ? result.data : result;
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
@@ -693,13 +697,13 @@
             if (!SCRIPT_URL) return;
             try {
                 const response = await apiRequest({ action: "getVeiculos" });
-                const data = await response.json();
+                const data = response
                 
                 if (Array.isArray(data) && data.length > 1) {
                     const mapaPlacas = new Map();
                     data.slice(1).forEach(row => {
                         const placa = (row[0] || '').toString().trim().toUpperCase();
-                        if (placa) {
+                        if (/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(placa)) {
                             mapaPlacas.set(placa, {
                                 placa: placa,
                                 marca: row[1] || '',
@@ -730,7 +734,7 @@
             if (!SCRIPT_URL) return;
             try {
                 const response = await apiRequest({ action: "getChecklists" });
-                const data = await response.json();
+                const data = response
                 
                 if (Array.isArray(data) && data.length > 1) {
                     checklists = data.slice(1).map(row => ({
@@ -744,6 +748,9 @@
                         luzes: row[6] || '',
                         combustivel: row[7] || '',
                         freios: row[8] || '',
+                        equipamentos: row[9] || '',
+                        cintos: row[10] || '',
+                        limpeza: row[11] || '',
                         obs: row[12] || row[7] || '',
                         foto: row[13] || row[8] || ''
                     })).reverse();
@@ -762,7 +769,7 @@
             if (!SCRIPT_URL) return;
             try {
                 const response = await apiRequest({ action: "getPneus" });
-                const data = await response.json();
+                const data = response
                 if (Array.isArray(data) && data.length > 1) {
                     pneus = data.slice(1).map(r => ({
                         data: r[0] ? new Date(r[0]).toLocaleDateString('pt-BR') : '',
@@ -783,7 +790,7 @@
             if (!SCRIPT_URL) return;
             try {
                 const response = await apiRequest({ action: "getManutencoes" });
-                const data = await response.json();
+                const data = response
                 if (Array.isArray(data) && data.length > 1) {
                     manutencaoList = data.slice(1).map(r => ({
                         data: r[0] ? new Date(r[0]).toLocaleDateString('pt-BR') : '',
@@ -804,7 +811,7 @@
             if (!SCRIPT_URL) return;
             try {
                 const response = await apiRequest({ action: "getMultas" });
-                const data = await response.json();
+                const data = response
                 if (Array.isArray(data) && data.length > 1) {
                     multas = data.slice(1).map(r => ({
                         dataHora: r[0] ? new Date(r[0]).toLocaleString('pt-BR') : '',
@@ -882,8 +889,8 @@
             recentBody.innerHTML = checklists.slice(0, 5).map(c => `
                 <tr class="border-b border-slate-800">
                     <td class="p-3 text-xs text-slate-400">${c.data}</td>
-                    <td class="p-3 font-semibold text-white">${c.placa}</td>
-                    <td class="p-3">${c.motorista}</td>
+                    <td class="p-3 font-semibold text-white">${escapeHtml(c.placa)}</td>
+                    <td class="p-3">${escapeHtml(c.motorista)}</td>
                     <td class="p-3">${c.km} km</td>
                 </tr>
             `).join('');
@@ -904,6 +911,11 @@
             });
         }
 
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[char]));
+        }
         function renderChecklistsTable() {
             const query = document.getElementById('search-checklists').value.toLowerCase();
             const filtered = checklists.filter(c => 
@@ -915,22 +927,25 @@
             const tbody = document.getElementById('checklists-table-body');
             
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="11" class="p-6 text-center text-slate-400">Nenhum checklist registrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="14" class="p-6 text-center text-slate-400">Nenhum checklist registrado.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = filtered.map(c => `
                 <tr class="hover:bg-slate-800/80 transition border-b border-slate-800">
                     <td class="p-4 text-xs text-slate-400 whitespace-nowrap">${c.data}</td>
-                    <td class="p-4 font-bold text-orange-400">${c.placa}</td>
-                    <td class="p-4 font-medium">${c.motorista}</td>
+                    <td class="p-4 font-bold text-orange-400">${escapeHtml(c.placa)}</td>
+                    <td class="p-4 font-medium">${escapeHtml(c.motorista)}</td>
                     <td class="p-4">${c.km} km</td>
                     <td class="p-4">${getStatusBadge(c.oleo_agua)}</td>
                     <td class="p-4">${getStatusBadge(c.pneus)}</td>
                     <td class="p-4">${getStatusBadge(c.luzes)}</td>
-                    <td class="p-4 text-xs">${c.combustivel || '-'}</td>
+                    <td class="p-4 text-xs">${escapeHtml(c.combustivel || '-')}</td>
                     <td class="p-4">${getStatusBadge(c.freios)}</td>
-                    <td class="p-4 text-xs max-w-xs truncate">${c.obs || '-'}</td>
+                    <td class="p-4">${getStatusBadge(c.equipamentos)}</td>
+                    <td class="p-4">${getStatusBadge(c.cintos)}</td>
+                    <td class="p-4">${getStatusBadge(c.limpeza)}</td>
+                    <td class="p-4 text-xs max-w-xs truncate">${escapeHtml(c.obs || '-')}</td>
                     <td class="p-4 text-center">
                         ${c.foto && c.foto.startsWith('http') ? 
                             `<a href="${c.foto}" target="_blank" class="text-xs bg-orange-600/30 hover:bg-orange-600/50 text-orange-300 border border-orange-500/40 px-2.5 py-1 rounded-lg transition"><i class="fa-solid fa-image mr-1"></i> Foto</a>` : 
@@ -957,7 +972,7 @@
             tbody.innerHTML = filtered.map(v => `
                 <tr class="hover:bg-slate-800/80 transition border-b border-slate-800">
                     <td class="p-4 font-bold text-white">${v.placa}</td>
-                    <td class="p-4">${v.marca} - ${v.modelo} (${v.ano})</td>
+                    <td class="p-4">${escapeHtml(v.marca)} - ${escapeHtml(v.modelo)} (${escapeHtml(v.ano)})</td>
                     <td class="p-4">${getStatusBadge(v.status)}</td>
                     <td class="p-4 font-semibold text-slate-300">${v.kmAtual ? v.kmAtual.toLocaleString('pt-BR') + ' km' : '-'}</td>
                     <td class="p-4">${getOleoBadge(v.kmAtual, v.kmProximaTroca)}</td>
@@ -1560,15 +1575,19 @@
             }
         }
 
-        function openQrModal(placa) {
+        async function openQrModal(placa) {
             const modal = document.getElementById('qr-modal');
             const vehicle = vehicles.find(v => v.placa === placa);
             if (!vehicle || !vehicle.qrToken) { alert("QR Code ainda não configurado para este veículo."); return; }
             const urlTarget = `https://diegoana-log.github.io/checklist-veiculos/?placa=${encodeURIComponent(placa)}&token=${encodeURIComponent(vehicle.qrToken)}`;
-            const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(urlTarget)}`;
 
             document.getElementById('qr-placa-title').innerText = `Veículo ${placa}`;
-            document.getElementById('qr-img').src = qrApiUrl;
+            try {
+                document.getElementById('qr-img').src = await QRCode.toDataURL(urlTarget, { width: 250, margin: 1 });
+            } catch (error) {
+                alert("Não foi possível gerar o QR Code.");
+                return;
+            }
             modal.classList.remove('hidden');
             modal.classList.add('flex');
         }
@@ -1654,12 +1673,12 @@
             const isWarning = ['Atenção', 'Gastos', 'Lâmpada Queimada', 'Em Uso', 'Em Rota', 'Reserva', 'Pedal Baixo/Ruído'].includes(status);
             
             if (isCritical) {
-                return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30">${status}</span>`;
+                return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30">${escapeHtml(status)}</span>`;
             }
             if (isWarning) {
-                return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">${status}</span>`;
+                return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">${escapeHtml(status)}</span>`;
             }
-            return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">${status || 'OK'}</span>`;
+            return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">${escapeHtml(status || 'OK')}</span>`;
         }
 
         function renderReports() {
@@ -1701,9 +1720,9 @@
                 return;
             }
 
-            let csv = 'Data,Placa,Motorista,KM,Oleo_Agua,Pneus,Luzes,Combustivel,Freios,Observacao,Foto\n';
+            let csv = 'Data,Placa,Motorista,KM,Oleo_Agua,Pneus,Luzes,Combustivel,Freios,Equipamentos,Cintos,Limpeza,Observacao,Foto\n';
             checklists.forEach(c => {
-                csv += `"${c.data}","${c.placa}","${c.motorista}",${c.km},"${c.oleo_agua}","${c.pneus}","${c.luzes}","${c.combustivel}","${c.freios}","${c.obs}","${c.foto}"\n`;
+                csv += `"${c.data}","${c.placa}","${c.motorista}",${c.km},"${c.oleo_agua}","${c.pneus}","${c.luzes}","${c.combustivel}","${c.freios}","${c.equipamentos}","${c.cintos}","${c.limpeza}","${c.obs}","${c.foto}"\n`;
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
