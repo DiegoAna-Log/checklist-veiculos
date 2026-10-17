@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     
     <style>
         #lock-screen {
@@ -599,7 +599,7 @@
             <p id="qr-placa-title" class="text-orange-400 font-bold text-lg mb-4">ABC-1234</p>
             
             <div class="bg-white p-4 rounded-xl inline-block shadow-lg mb-4">
-                <img id="qr-img" src="" alt="QR Code" class="w-48 h-48 mx-auto">
+                <div id="qr-code-render" class="w-48 h-48 mx-auto"></div>
             </div>
             <p class="text-xs text-slate-400 mb-6">Cole este QR Code no interior do veículo para acesso direto ao checklist.</p>
             
@@ -1579,13 +1579,26 @@
             const modal = document.getElementById('qr-modal');
             const vehicle = vehicles.find(v => v.placa === placa);
             if (!vehicle || !vehicle.qrToken) { alert("QR Code ainda não configurado para este veículo."); return; }
+            if (typeof QRCode !== 'function') {
+                alert("O gerador de QR não carregou. Recarregue a página e tente novamente.");
+                return;
+            }
             const urlTarget = `https://diegoana-log.github.io/checklist-veiculos/?placa=${encodeURIComponent(placa)}&token=${encodeURIComponent(vehicle.qrToken)}`;
-
             document.getElementById('qr-placa-title').innerText = `Veículo ${placa}`;
+            const container = document.getElementById('qr-code-render');
+            container.replaceChildren();
             try {
-                document.getElementById('qr-img').src = await QRCode.toDataURL(urlTarget, { width: 250, margin: 1 });
+                new QRCode(container, {
+                    text: urlTarget,
+                    width: 250,
+                    height: 250,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
             } catch (error) {
-                alert("Não foi possível gerar o QR Code.");
+                console.error('Falha ao gerar QR Code:', error);
+                alert("Não foi possível gerar o QR Code. Confira os dados do veículo e tente novamente.");
                 return;
             }
             modal.classList.remove('hidden');
