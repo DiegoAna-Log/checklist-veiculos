@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -622,13 +623,15 @@
         let pneus = [];
         let manutencaoList = [];
         let multas = [];
+        let errosDeCarga = [];
+        let senhaGestorAtiva = '';
 
         let chartStatusDashInstance = null;
         let chartBrandsInstance = null;
         let chartStatusReportInstance = null;
 
         async function apiRequest(payload, passwordOverride) {
-            const adminPassword = passwordOverride || sessionStorage.getItem("adminPassword") || "";
+            const adminPassword = passwordOverride || senhaGestorAtiva || "";
             const response = await fetch(SCRIPT_URL, {
                 method: "POST",
                 mode: "cors",
@@ -643,18 +646,6 @@
             return result.data !== undefined ? result.data : result;
         }
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            const savedPassword = sessionStorage.getItem("adminPassword");
-            if (!savedPassword) return;
-            try {
-                const result = await apiRequest({ action: "loginAdmin" }, savedPassword);
-                if (result.status === "sucesso") liberarDashboard();
-                else sessionStorage.removeItem("adminPassword");
-            } catch (error) {
-                sessionStorage.removeItem("adminPassword");
-            }
-        });
-
         async function checkPassword() {
             const input = document.getElementById("password-input").value;
             const error = document.getElementById("error-msg");
@@ -662,7 +653,7 @@
             try {
                 const result = await apiRequest({ action: "loginAdmin" }, input);
                 if (result.status !== "sucesso") throw new Error("Senha inválida");
-                sessionStorage.setItem("adminPassword", input);
+                senhaGestorAtiva = input;
                 liberarDashboard();
             } catch (err) {
                 error.classList.remove("hidden");
@@ -677,12 +668,13 @@
         }
 
         function logout() {
-            sessionStorage.removeItem("adminPassword");
+            senhaGestorAtiva = "";
             location.reload();
         }
 
         async function carregarDados() {
-            await Promise.all([
+            errosDeCarga = [];
+            await Promise.allSettled([
                 carregarVeiculosDaPlanilha(), 
                 carregarChecklistsDaPlanilha(),
                 carregarPneusDaPlanilha(),
@@ -691,6 +683,9 @@
             ]);
             updateDashboard();
             populerSelectsVeiculos();
+            if (errosDeCarga.length) {
+                alert('O painel carregou parcialmente. Não foi possível ler: ' + errosDeCarga.join(', ') + '. Confira a conexão e a implantação do Apps Script e tente atualizar.');
+            }
         }
 
         async function carregarVeiculosDaPlanilha() {
@@ -727,6 +722,7 @@
                 }
             } catch (error) {
                 console.error("Erro ao carregar veículos:", error);
+                errosDeCarga.push('veículos');
             }
         }
 
@@ -762,6 +758,7 @@
                 }
             } catch (error) {
                 console.error("Erro ao carregar checklists:", error);
+                errosDeCarga.push('checklists');
             }
         }
 
@@ -780,9 +777,10 @@
                         valor: r[5] || 0,
                         oficina: r[6] || ''
                     })).reverse();
-                }
+                } else pneus = [];
             } catch (err) {
                 console.error(err);
+                errosDeCarga.push('pneus');
             }
         }
 
@@ -801,9 +799,10 @@
                         valor: r[5] || 0,
                         oficina: r[6] || ''
                     })).reverse();
-                }
+                } else manutencaoList = [];
             } catch (err) {
                 console.error(err);
+                errosDeCarga.push('manutenções');
             }
         }
 
@@ -824,9 +823,10 @@
                         statusPagamento: r[7] || 'Pendente'
                     })).reverse();
                     renderMultasTable();
-                }
+                } else { multas = []; renderMultasTable(); }
             } catch (err) {
                 console.error(err);
+                errosDeCarga.push('multas');
             }
         }
 
@@ -834,7 +834,14 @@
             const selects = [document.getElementById('pneu-placa-select'), document.getElementById('manut-placa-select'), document.getElementById('multa-placa-select')];
             selects.forEach(s => {
                 if (!s) return;
-                s.innerHTML = vehicles.map(v => `<option value="${v.placa}">${v.placa} - ${v.marca} ${v.modelo}</option>`).join('');
+                const currentValue = s.value;
+                s.replaceChildren(...vehicles.map(v => {
+                    const option = document.createElement('option');
+                    option.value = v.placa;
+                    option.textContent = `${v.placa} - ${v.marca} ${v.modelo}`;
+                    return option;
+                }));
+                if (vehicles.some(v => v.placa === currentValue)) s.value = currentValue;
             });
         }
 
@@ -888,14 +895,16 @@
             const recentBody = document.getElementById('recent-checklists-body');
             recentBody.innerHTML = checklists.slice(0, 5).map(c => `
                 <tr class="border-b border-slate-800">
-                    <td class="p-3 text-xs text-slate-400">${c.data}</td>
+                    <td class="p-3 text-xs text-slate-400">${escapeHtml(c.data)}</td>
                     <td class="p-3 font-semibold text-white">${escapeHtml(c.placa)}</td>
                     <td class="p-3">${escapeHtml(c.motorista)}</td>
-                    <td class="p-3">${c.km} km</td>
+                    <td class="p-3">${escapeHtml(c.km)} km</td>
                 </tr>
             `).join('');
 
-            const ctx = document.getElementById('chartStatusDashboard').getContext('2d');
+            const dashboardCanvas = document.getElementById('chartStatusDashboard');
+            if (!dashboardCanvas || typeof Chart === 'undefined') return;
+            const ctx = dashboardCanvas.getContext('2d');
             if (chartStatusDashInstance) chartStatusDashInstance.destroy();
 
             chartStatusDashInstance = new Chart(ctx, {
@@ -916,6 +925,12 @@
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
             }[char]));
         }
+        function isSafePhotoUrl(value) {
+            try {
+                const url = new URL(String(value || ''));
+                return url.protocol === 'https:' && url.hostname === 'drive.google.com';
+            } catch (_) { return false; }
+        }
         function renderChecklistsTable() {
             const query = document.getElementById('search-checklists').value.toLowerCase();
             const filtered = checklists.filter(c => 
@@ -933,10 +948,10 @@
 
             tbody.innerHTML = filtered.map(c => `
                 <tr class="hover:bg-slate-800/80 transition border-b border-slate-800">
-                    <td class="p-4 text-xs text-slate-400 whitespace-nowrap">${c.data}</td>
+                    <td class="p-4 text-xs text-slate-400 whitespace-nowrap">${escapeHtml(c.data)}</td>
                     <td class="p-4 font-bold text-orange-400">${escapeHtml(c.placa)}</td>
                     <td class="p-4 font-medium">${escapeHtml(c.motorista)}</td>
-                    <td class="p-4">${c.km} km</td>
+                    <td class="p-4">${escapeHtml(c.km)} km</td>
                     <td class="p-4">${getStatusBadge(c.oleo_agua)}</td>
                     <td class="p-4">${getStatusBadge(c.pneus)}</td>
                     <td class="p-4">${getStatusBadge(c.luzes)}</td>
@@ -947,8 +962,8 @@
                     <td class="p-4">${getStatusBadge(c.limpeza)}</td>
                     <td class="p-4 text-xs max-w-xs truncate">${escapeHtml(c.obs || '-')}</td>
                     <td class="p-4 text-center">
-                        ${c.foto && c.foto.startsWith('http') ? 
-                            `<a href="${c.foto}" target="_blank" class="text-xs bg-orange-600/30 hover:bg-orange-600/50 text-orange-300 border border-orange-500/40 px-2.5 py-1 rounded-lg transition"><i class="fa-solid fa-image mr-1"></i> Foto</a>` : 
+                        ${isSafePhotoUrl(c.foto) ? 
+                            `<a href="${escapeHtml(c.foto)}" target="_blank" rel="noopener noreferrer" class="text-xs bg-orange-600/30 hover:bg-orange-600/50 text-orange-300 border border-orange-500/40 px-2.5 py-1 rounded-lg transition"><i class="fa-solid fa-image mr-1"></i> Foto</a>` : 
                             '<span class="text-slate-500 text-xs">-</span>'}
                     </td>
                 </tr>
@@ -971,10 +986,10 @@
 
             tbody.innerHTML = filtered.map(v => `
                 <tr class="hover:bg-slate-800/80 transition border-b border-slate-800">
-                    <td class="p-4 font-bold text-white">${v.placa}</td>
+                    <td class="p-4 font-bold text-white">${escapeHtml(v.placa)}</td>
                     <td class="p-4">${escapeHtml(v.marca)} - ${escapeHtml(v.modelo)} (${escapeHtml(v.ano)})</td>
                     <td class="p-4">${getStatusBadge(v.status)}</td>
-                    <td class="p-4 font-semibold text-slate-300">${v.kmAtual ? v.kmAtual.toLocaleString('pt-BR') + ' km' : '-'}</td>
+                    <td class="p-4 font-semibold text-slate-300">${Number(v.kmAtual) ? Number(v.kmAtual).toLocaleString('pt-BR') + ' km' : '-'}</td>
                     <td class="p-4">${getOleoBadge(v.kmAtual, v.kmProximaTroca)}</td>
                     <td class="p-4 space-y-1 text-xs">
                         <div>IPVA: ${getDocBadge(v.dataIpva)}</div>
@@ -1019,13 +1034,13 @@
 
             tbody.innerHTML = filtered.map(m => `
                 <tr class="hover:bg-slate-800/80 transition border-b border-slate-800">
-                    <td class="p-3 text-slate-400">${m.dataHora}</td>
-                    <td class="p-3 font-bold text-orange-400">${m.placa}</td>
-                    <td class="p-3 font-semibold text-white">${m.motorista}</td>
-                    <td class="p-3">${m.descricao} <br><span class="text-[10px] text-slate-500">${m.local || ''}</span></td>
+                    <td class="p-3 text-slate-400">${escapeHtml(m.dataHora)}</td>
+                    <td class="p-3 font-bold text-orange-400">${escapeHtml(m.placa)}</td>
+                    <td class="p-3 font-semibold text-white">${escapeHtml(m.motorista)}</td>
+                    <td class="p-3">${escapeHtml(m.descricao)} <br><span class="text-[10px] text-slate-500">${escapeHtml(m.local || '')}</span></td>
                     <td class="p-3 font-bold text-rose-400">R$ ${Number(m.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                    <td class="p-3 text-center"><span class="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded">${m.pontos} pts</span></td>
-                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${m.statusPagamento === 'Pendente' ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'}">${m.statusPagamento}</span></td>
+                    <td class="p-3 text-center"><span class="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded">${escapeHtml(m.pontos)} pts</span></td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded text-[11px] font-bold ${m.statusPagamento === 'Pendente' ? 'bg-rose-500/20 text-rose-400' : 'bg-emerald-500/20 text-emerald-400'}">${escapeHtml(m.statusPagamento)}</span></td>
                 </tr>
             `).join('');
         }
@@ -1050,6 +1065,7 @@
             const totalPts = filtered.reduce((acc, m) => acc + Number(m.pontos), 0);
 
             const printWindow = window.open('', '_blank');
+            if (!printWindow) { alert('Permita a abertura de janelas para imprimir o relatório.'); return; }
             printWindow.document.write(`
                 <!DOCTYPE html>
                 <html lang="pt-BR">
@@ -1081,7 +1097,7 @@
                         </div>
                         <div style="text-align: right;">
                             <strong>Emissão:</strong> ${new Date().toLocaleDateString('pt-BR')} ${new Date().toLocaleTimeString('pt-BR')}<br>
-                            <span style="font-size: 9px; color: #666;">Filtro: ${query ? '"' + query + '"' : 'Todos'} | Status: ${statusFilter || 'Todos'}</span>
+                            <span style="font-size: 9px; color: #666;">Filtro: ${escapeHtml(query ? '"' + query + '"' : 'Todos')} | Status: ${escapeHtml(statusFilter || 'Todos')}</span>
                         </div>
                     </div>
 
@@ -1106,13 +1122,13 @@
                         <tbody>
                             ${filtered.map(m => `
                                 <tr>
-                                    <td>${m.dataHora}</td>
-                                    <td><strong>${m.placa}</strong></td>
-                                    <td>${m.motorista}</td>
-                                    <td>${m.descricao} <br><small style="color:#64748b;">${m.local || ''}</small></td>
+                                    <td>${escapeHtml(m.dataHora)}</td>
+                                    <td><strong>${escapeHtml(m.placa)}</strong></td>
+                                    <td>${escapeHtml(m.motorista)}</td>
+                                    <td>${escapeHtml(m.descricao)} <br><small style="color:#64748b;">${escapeHtml(m.local || '')}</small></td>
                                     <td class="val">R$ ${Number(m.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                                    <td class="pts">${m.pontos} pts</td>
-                                    <td>${m.statusPagamento}</td>
+                                    <td class="pts">${escapeHtml(m.pontos)} pts</td>
+                                    <td>${escapeHtml(m.statusPagamento)}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -1198,6 +1214,7 @@
             
             const hoje = new Date();
             const venc = new Date(dateStr);
+            if (Number.isNaN(venc.getTime())) return `<span class="text-slate-500">Data inválida</span>`;
             const diffDias = Math.ceil((venc - hoje) / (1000 * 60 * 60 * 24));
 
             const formatada = venc.toLocaleDateString('pt-BR');
@@ -1289,11 +1306,11 @@
                                 <tbody class="divide-y divide-slate-800 text-slate-300">
                                     ${vehicleMultas.map(m => `
                                         <tr>
-                                            <td class="p-2">${m.dataHora}</td>
-                                            <td class="p-2 font-bold text-orange-400">${m.motorista}</td>
-                                            <td class="p-2">${m.descricao}</td>
+                    <td class="p-2">${escapeHtml(m.dataHora)}</td>
+                    <td class="p-2 font-bold text-orange-400">${escapeHtml(m.motorista)}</td>
+                    <td class="p-2">${escapeHtml(m.descricao)}</td>
                                             <td class="p-2 text-rose-400 font-semibold">R$ ${Number(m.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                                            <td class="p-2">${m.statusPagamento}</td>
+                    <td class="p-2">${escapeHtml(m.statusPagamento)}</td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -1317,10 +1334,10 @@
                                 <tbody class="divide-y divide-slate-800 text-slate-300">
                                     ${vehiclePneus.map(p => `
                                         <tr>
-                                            <td class="p-2">${p.data}</td>
-                                            <td class="p-2 font-bold">${p.marcaPneu}</td>
-                                            <td class="p-2">${p.posicao}</td>
-                                            <td class="p-2">${p.kmTroca} km</td>
+                    <td class="p-2">${escapeHtml(p.data)}</td>
+                    <td class="p-2 font-bold">${escapeHtml(p.marcaPneu)}</td>
+                    <td class="p-2">${escapeHtml(p.posicao)}</td>
+                    <td class="p-2">${escapeHtml(p.kmTroca)} km</td>
                                             <td class="p-2 text-emerald-400 font-semibold">R$ ${Number(p.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                                         </tr>
                                     `).join('')}
@@ -1345,10 +1362,10 @@
                                 <tbody class="divide-y divide-slate-800 text-slate-300">
                                     ${vehicleCustos.map(m => `
                                         <tr>
-                                            <td class="p-2">${m.data}</td>
-                                            <td class="p-2 font-bold text-orange-400">${m.tipo}</td>
-                                            <td class="p-2">${m.descricao}</td>
-                                            <td class="p-2">${m.km} km</td>
+                    <td class="p-2">${escapeHtml(m.data)}</td>
+                    <td class="p-2 font-bold text-orange-400">${escapeHtml(m.tipo)}</td>
+                    <td class="p-2">${escapeHtml(m.descricao)}</td>
+                    <td class="p-2">${escapeHtml(m.km)} km</td>
                                             <td class="p-2 text-emerald-400 font-semibold">R$ ${Number(m.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                                         </tr>
                                     `).join('')}
@@ -1374,12 +1391,13 @@
             const vehicleMultas = multas.filter(m => m.placa === placa);
 
             const printWindow = window.open('', '_blank');
+            if (!printWindow) { alert('Permita a abertura de janelas para imprimir o dossiê.'); return; }
             printWindow.document.write(`
                 <!DOCTYPE html>
                 <html lang="pt-BR">
                 <head>
                     <meta charset="UTF-8">
-                    <title>Ficha do Veículo ${vehicle.placa} - Ana-Log</title>
+                    <title>Ficha do Veículo ${escapeHtml(vehicle.placa)} - Ana-Log</title>
                     <style>
                         body { font-family: Arial, sans-serif; color: #111; margin: 20px; font-size: 12px; }
                         .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #E85A22; padding-bottom: 10px; margin-bottom: 20px; }
@@ -1412,10 +1430,10 @@
                     </div>
 
                     <div class="grid">
-                        <div class="box"><div class="box-title">Placa</div><div class="box-val">${vehicle.placa}</div></div>
-                        <div class="box"><div class="box-title">Marca / Modelo</div><div class="box-val">${vehicle.marca} ${vehicle.modelo}</div></div>
+                        <div class="box"><div class="box-title">Placa</div><div class="box-val">${escapeHtml(vehicle.placa)}</div></div>
+                        <div class="box"><div class="box-title">Marca / Modelo</div><div class="box-val">${escapeHtml(vehicle.marca)} ${escapeHtml(vehicle.modelo)}</div></div>
                         <div class="box"><div class="box-title">KM Atual</div><div class="box-val">${vehicle.kmAtual ? vehicle.kmAtual.toLocaleString('pt-BR') : 0} km</div></div>
-                        <div class="box"><div class="box-title">Status Atual</div><div class="box-val">${vehicle.status}</div></div>
+                        <div class="box"><div class="box-title">Status Atual</div><div class="box-val">${escapeHtml(vehicle.status)}</div></div>
                     </div>
 
                     <section>
@@ -1428,11 +1446,11 @@
                                 <tbody>
                                     ${vehicleMultas.map(m => `
                                         <tr>
-                                            <td>${m.dataHora}</td>
-                                            <td>${m.motorista}</td>
-                                            <td>${m.descricao}</td>
+                                            <td>${escapeHtml(m.dataHora)}</td>
+                                            <td>${escapeHtml(m.motorista)}</td>
+                                            <td>${escapeHtml(m.descricao)}</td>
                                             <td>R$ ${Number(m.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
-                                            <td>${m.statusPagamento}</td>
+                                            <td>${escapeHtml(m.statusPagamento)}</td>
                                         </tr>
                                     `).join('')}
                                 </tbody>
@@ -1450,10 +1468,10 @@
                                 <tbody>
                                     ${vehiclePneus.map(p => `
                                         <tr>
-                                            <td>${p.data}</td>
-                                            <td>${p.marcaPneu}</td>
-                                            <td>${p.posicao}</td>
-                                            <td>${p.kmTroca} km</td>
+                                            <td>${escapeHtml(p.data)}</td>
+                                            <td>${escapeHtml(p.marcaPneu)}</td>
+                                            <td>${escapeHtml(p.posicao)}</td>
+                                            <td>${escapeHtml(p.kmTroca)} km</td>
                                             <td>R$ ${Number(p.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                                         </tr>
                                     `).join('')}
@@ -1472,11 +1490,11 @@
                                 <tbody>
                                     ${vehicleCustos.map(m => `
                                         <tr>
-                                            <td>${m.data}</td>
-                                            <td>${m.tipo}</td>
-                                            <td>${m.descricao}</td>
-                                            <td>${m.km} km</td>
-                                            <td>${m.oficina || '-'}</td>
+                                            <td>${escapeHtml(m.data)}</td>
+                                            <td>${escapeHtml(m.tipo)}</td>
+                                            <td>${escapeHtml(m.descricao)}</td>
+                                            <td>${escapeHtml(m.km)} km</td>
+                                            <td>${escapeHtml(m.oficina || '-')}</td>
                                             <td>R$ ${Number(m.valor).toLocaleString('pt-BR', {minimumFractionDigits: 2})}</td>
                                         </tr>
                                     `).join('')}
@@ -1700,7 +1718,10 @@
                 if (v.marca) brandCounts[v.marca] = (brandCounts[v.marca] || 0) + 1;
             });
 
-            const ctxBrands = document.getElementById('chartBrands').getContext('2d');
+            if (typeof Chart === 'undefined') return;
+            const brandsCanvas = document.getElementById('chartBrands');
+            if (!brandsCanvas) return;
+            const ctxBrands = brandsCanvas.getContext('2d');
             if (chartBrandsInstance) chartBrandsInstance.destroy();
             chartBrandsInstance = new Chart(ctxBrands, {
                 type: 'bar',
@@ -1715,7 +1736,9 @@
             const emUso = vehicles.filter(v => v.status === 'Em Uso' || v.status === 'Em Rota').length;
             const manutencao = vehicles.filter(v => v.status === 'Manutenção' || v.status === 'Em Manutenção').length;
 
-            const ctxStatus = document.getElementById('chartStatusReport').getContext('2d');
+            const statusCanvas = document.getElementById('chartStatusReport');
+            if (!statusCanvas) return;
+            const ctxStatus = statusCanvas.getContext('2d');
             if (chartStatusReportInstance) chartStatusReportInstance.destroy();
             chartStatusReportInstance = new Chart(ctxStatus, {
                 type: 'pie',
@@ -1733,9 +1756,14 @@
                 return;
             }
 
-            let csv = 'Data,Placa,Motorista,KM,Oleo_Agua,Pneus,Luzes,Combustivel,Freios,Equipamentos,Cintos,Limpeza,Observacao,Foto\n';
+            const csvCell = value => {
+                let text = String(value ?? '');
+                if (/^[\\s]*[=+@\\-]/.test(text)) text = "'" + text;
+                return `"${text.replace(/"/g, '""')}"`;
+            };
+            let csv = '\uFEFFData,Placa,Motorista,KM,Oleo_Agua,Pneus,Luzes,Combustivel,Freios,Equipamentos,Cintos,Limpeza,Observacao,Foto\r\n';
             checklists.forEach(c => {
-                csv += `"${c.data}","${c.placa}","${c.motorista}",${c.km},"${c.oleo_agua}","${c.pneus}","${c.luzes}","${c.combustivel}","${c.freios}","${c.equipamentos}","${c.cintos}","${c.limpeza}","${c.obs}","${c.foto}"\n`;
+                csv += [c.data,c.placa,c.motorista,c.km,c.oleo_agua,c.pneus,c.luzes,c.combustivel,c.freios,c.equipamentos,c.cintos,c.limpeza,c.obs,c.foto].map(csvCell).join(',') + '\r\n';
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -1743,6 +1771,7 @@
             link.href = URL.createObjectURL(blob);
             link.download = `relatorio_checklists_analog_${new Date().toISOString().slice(0,10)}.csv`;
             link.click();
+            setTimeout(() => URL.revokeObjectURL(link.href), 1000);
         }
     </script>
 </body>
