@@ -108,7 +108,7 @@
 
             <!-- ABA: DASHBOARD -->
             <section id="tab-dashboard" class="tab-content space-y-6">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                     <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 flex items-center justify-between">
                         <div>
                             <p class="text-xs text-slate-400 font-semibold uppercase">Total Veículos</p>
@@ -153,6 +153,48 @@
                         <div class="w-10 h-10 bg-amber-500/20 text-amber-400 rounded-lg flex items-center justify-center text-lg">
                             <i class="fa-solid fa-oil-can"></i>
                         </div>
+                    </div>
+                    <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 flex items-center justify-between">
+                        <div>
+                            <p class="text-xs text-slate-400 font-semibold uppercase">Docs Vencidos / 30 Dias</p>
+                            <p id="dash-documentos-alerta" class="text-2xl font-bold text-amber-400 mt-1">0</p>
+                        </div>
+                        <div class="w-10 h-10 bg-amber-500/20 text-amber-400 rounded-lg flex items-center justify-center text-lg">
+                            <i class="fa-solid fa-file-circle-exclamation"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 p-6 rounded-xl border border-slate-800">
+                    <div class="flex items-center justify-between gap-3 mb-4">
+                        <h3 class="text-lg font-bold text-white">Pendências críticas</h3>
+                        <span id="critical-occurrence-count" class="text-xs font-bold text-rose-300 bg-rose-500/10 border border-rose-500/30 px-2.5 py-1 rounded-full">0 pendentes</span>
+                    </div>
+                    <p id="critical-occurrence-empty" class="text-sm text-slate-400">Nenhuma ocorrência crítica pendente.</p>
+                    <div id="critical-occurrence-wrap" class="overflow-x-auto hidden">
+                        <table class="w-full text-left text-sm text-slate-300 min-w-[760px]">
+                            <thead class="bg-slate-950 text-xs uppercase text-slate-400">
+                                <tr><th class="p-3">Data</th><th class="p-3">Placa</th><th class="p-3">Motorista</th><th class="p-3">Item</th><th class="p-3">Problema</th><th class="p-3">Ação</th></tr>
+                            </thead>
+                            <tbody id="critical-occurrence-body" class="divide-y divide-slate-800"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900 p-6 rounded-xl border border-slate-800">
+                    <div class="flex items-center justify-between gap-3 mb-4">
+                        <h3 class="text-lg font-bold text-white">Dados para revisar</h3>
+                        <span id="data-quality-count" class="text-xs font-bold text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-full">0 registros</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-3">O painel apenas sinaliza os registros; a correção é feita na planilha.</p>
+                    <p id="data-quality-empty" class="text-sm text-slate-400">Nenhum dado incompleto ou inválido encontrado.</p>
+                    <div id="data-quality-wrap" class="overflow-x-auto hidden">
+                        <table class="w-full text-left text-sm text-slate-300 min-w-[620px]">
+                            <thead class="bg-slate-950 text-xs uppercase text-slate-400">
+                                <tr><th class="p-3">Origem</th><th class="p-3">Data</th><th class="p-3">Veículo</th><th class="p-3">Campo</th><th class="p-3">O que revisar</th></tr>
+                            </thead>
+                            <tbody id="data-quality-body" class="divide-y divide-slate-800"></tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -204,6 +246,7 @@
                                     <th class="p-4">Pneus</th>
                                     <th class="p-4">Luzes</th>
                                     <th class="p-4">Combustível</th>
+                                    <th class="p-4">Visibilidade</th>
                                     <th class="p-4">Freios</th>
                                     <th class="p-4">Equipamentos</th>
                                     <th class="p-4">Cintos</th>
@@ -239,7 +282,7 @@
                                     <th class="p-4">Status</th>
                                     <th class="p-4">KM Atual</th>
                                     <th class="p-4">Troca de Óleo</th>
-                                    <th class="p-4">Documentos (IPVA / Inspeção / Seguro)</th>
+                                    <th class="p-4">Documentos (IPVA / Licenciamento)</th>
                                     <th class="p-4 text-center">Ações</th>
                                 </tr>
                             </thead>
@@ -278,7 +321,7 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Status</label>
                                 <select id="status" class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
@@ -303,15 +346,11 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Vencimento IPVA</label>
-                                <input type="date" id="dataIpva" class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                                <input type="date" id="dataIpva" min="2000-01-01" max="2100-12-31" class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
                             </div>
                             <div>
-                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Vencimento Inspeção</label>
-                                <input type="date" id="dataInspecao" class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Vencimento Seguro</label>
-                                <input type="date" id="dataSeguro" class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
+                                <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Vencimento Licenciamento</label>
+                                <input type="date" id="dataLicenciamento" min="2000-01-01" max="2100-12-31" class="w-full p-3 bg-slate-950 border border-slate-800 text-white rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none">
                             </div>
                         </div>
 
@@ -620,6 +659,7 @@
 
         let vehicles = [];
         let checklists = [];
+        let ocorrenciasCriticas = [];
         let pneus = [];
         let manutencaoList = [];
         let multas = [];
@@ -677,11 +717,13 @@
             await Promise.allSettled([
                 carregarVeiculosDaPlanilha(), 
                 carregarChecklistsDaPlanilha(),
+                carregarOcorrenciasDaPlanilha(),
                 carregarPneusDaPlanilha(),
                 carregarManutencaoDaPlanilha(),
                 carregarMultasDaPlanilha()
             ]);
             updateDashboard();
+            renderDataQuality();
             populerSelectsVeiculos();
             if (errosDeCarga.length) {
                 alert('O painel carregou parcialmente. Não foi possível ler: ' + errosDeCarga.join(', ') + '. Confira a conexão e a implantação do Apps Script e tente atualizar.');
@@ -709,8 +751,7 @@
                 qrToken: row[10] || "",
                                 kmProximaTroca: Number(row[6]) || 0,
                                 dataIpva: row[7] || '',
-                                dataInspecao: row[8] || '',
-                                dataSeguro: row[9] || ''
+                                dataLicenciamento: row[11] || ''
                             });
                         }
                     });
@@ -748,7 +789,8 @@
                         cintos: row[10] || '',
                         limpeza: row[11] || '',
                         obs: row[12] || '',
-                        foto: row[13] || ''
+                        foto: row[13] || '',
+                        visibilidade: row[14] || ''
                     })).reverse();
                     
                     renderChecklistsTable();
@@ -759,6 +801,68 @@
             } catch (error) {
                 console.error("Erro ao carregar checklists:", error);
                 errosDeCarga.push('checklists');
+            }
+        }
+
+        async function carregarOcorrenciasDaPlanilha() {
+            if (!SCRIPT_URL) return;
+            try {
+                const data = await apiRequest({ action: 'getOcorrencias' });
+                ocorrenciasCriticas = Array.isArray(data) && data.length > 1
+                    ? data.slice(1).map(row => ({
+                        id: String(row[0] || ''),
+                        data: row[1] ? new Date(row[1]).toLocaleString('pt-BR') : '',
+                        placa: String(row[2] || ''),
+                        motorista: String(row[3] || ''),
+                        km: row[4] || '',
+                        item: String(row[5] || ''),
+                        problema: String(row[6] || ''),
+                        foto: String(row[7] || ''),
+                        status: String(row[8] || 'Pendente'),
+                        resolvidaEm: row[9] || ''
+                    })).filter(item => item.status === 'Pendente').reverse()
+                    : [];
+                renderCriticalOccurrences();
+            } catch (error) {
+                console.error('Erro ao carregar pendências críticas:', error);
+                errosDeCarga.push('pendências críticas');
+            }
+        }
+
+        function renderCriticalOccurrences() {
+            const count = document.getElementById('critical-occurrence-count');
+            const empty = document.getElementById('critical-occurrence-empty');
+            const wrap = document.getElementById('critical-occurrence-wrap');
+            const body = document.getElementById('critical-occurrence-body');
+            if (!count || !empty || !wrap || !body) return;
+            count.innerText = `${ocorrenciasCriticas.length} pendente${ocorrenciasCriticas.length === 1 ? '' : 's'}`;
+            empty.classList.toggle('hidden', ocorrenciasCriticas.length > 0);
+            wrap.classList.toggle('hidden', ocorrenciasCriticas.length === 0);
+            body.onclick = event => {
+                const button = event.target.closest('[data-occurrence-id]');
+                if (button) resolverOcorrencia(button.dataset.occurrenceId);
+            };
+            body.innerHTML = ocorrenciasCriticas.map(item => `
+                <tr class="border-b border-slate-800">
+                    <td class="p-3 text-xs text-slate-400 whitespace-nowrap">${escapeHtml(item.data)}</td>
+                    <td class="p-3 font-bold text-orange-300">${escapeHtml(item.placa)}</td>
+                    <td class="p-3">${escapeHtml(item.motorista)}</td>
+                    <td class="p-3">${escapeHtml(item.item)}</td>
+                    <td class="p-3 text-rose-300">${escapeHtml(item.problema)}${isSafePhotoUrl(item.foto) ? ` <a class="underline" href="${escapeHtml(item.foto)}" target="_blank" rel="noopener noreferrer">Foto</a>` : ''}</td>
+                    <td class="p-3"><button data-occurrence-id="${escapeHtml(item.id)}" class="px-3 py-1.5 bg-emerald-600/20 text-emerald-300 border border-emerald-500/40 rounded-lg hover:bg-emerald-600/30">Marcar resolvida</button></td>
+                </tr>
+            `).join('');
+        }
+
+        async function resolverOcorrencia(id) {
+            const item = ocorrenciasCriticas.find(occ => occ.id === id);
+            if (!item || !confirm(`Marcar a ocorrência de ${item.placa} (${item.item}) como resolvida?`)) return;
+            try {
+                await apiRequest({ action: 'resolverOcorrencia', id });
+                await carregarOcorrenciasDaPlanilha();
+                alert('Ocorrência marcada como resolvida.');
+            } catch (error) {
+                alert(error.message || 'Não foi possível atualizar a ocorrência.');
             }
         }
 
@@ -885,22 +989,28 @@
                 const restante = v.kmProximaTroca - v.kmAtual;
                 return restante <= 3000;
             }).length;
+            const docsAlerta = vehicles.reduce((count, vehicle) => count + ['dataIpva', 'dataLicenciamento'].filter(key => {
+                const days = documentDaysLeft(vehicle[key]);
+                return days !== null && days <= 30;
+            }).length, 0);
 
             document.getElementById('dash-total').innerText = total;
             document.getElementById('dash-disponivel').innerText = disponivel;
             document.getElementById('dash-emuso').innerText = emUso;
             document.getElementById('dash-manutencao').innerText = manutencao;
             document.getElementById('dash-oleo-alerta').innerText = alertaOleo;
+            document.getElementById('dash-documentos-alerta').innerText = docsAlerta;
 
             const recentBody = document.getElementById('recent-checklists-body');
-            recentBody.innerHTML = checklists.slice(0, 5).map(c => `
+            const recentValid = checklists.filter(isChecklistDataComplete).slice(0, 5);
+            recentBody.innerHTML = recentValid.length ? recentValid.map(c => `
                 <tr class="border-b border-slate-800">
                     <td class="p-3 text-xs text-slate-400">${escapeHtml(c.data)}</td>
                     <td class="p-3 font-semibold text-white">${escapeHtml(c.placa)}</td>
                     <td class="p-3">${escapeHtml(c.motorista)}</td>
                     <td class="p-3">${escapeHtml(c.km)} km</td>
                 </tr>
-            `).join('');
+            `).join('') : '<tr><td colspan="4" class="p-4 text-center text-slate-500">Nenhum checklist completo disponível.</td></tr>';
 
             const dashboardCanvas = document.getElementById('chartStatusDashboard');
             if (!dashboardCanvas || typeof Chart === 'undefined') return;
@@ -925,6 +1035,45 @@
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
             }[char]));
         }
+        function isChecklistDataComplete(item) {
+            return /^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(String(item.placa || '').trim().toUpperCase()) &&
+                !!String(item.motorista || '').trim() && String(item.km ?? '').trim() !== '' && Number.isSafeInteger(Number(item.km)) && Number(item.km) >= 0;
+        }
+
+        function renderDataQuality() {
+            const issues = [];
+            checklists.forEach(item => {
+                const reasons = [];
+                if (!/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/.test(String(item.placa || '').trim().toUpperCase())) reasons.push('Placa ausente ou inválida');
+                if (!String(item.motorista || '').trim()) reasons.push('Motorista não informado');
+                if (String(item.km ?? '').trim() === '' || !Number.isSafeInteger(Number(item.km)) || Number(item.km) < 0) reasons.push('Quilometragem ausente ou inválida');
+                if (reasons.length) issues.push({ origem: 'Checklist', data: item.data, placa: item.placa || '-', campo: 'Registro', motivo: reasons.join('; ') });
+            });
+            vehicles.forEach(vehicle => {
+                [['IPVA', vehicle.dataIpva], ['Licenciamento', vehicle.dataLicenciamento]].forEach(([label, value]) => {
+                    if (String(value || '').trim() && !parseDocumentDate(value)) {
+                        issues.push({ origem: 'Veículo', data: '', placa: vehicle.placa, campo: label, motivo: 'Data inválida; confira o cadastro na planilha.' });
+                    }
+                });
+            });
+            const count = document.getElementById('data-quality-count');
+            const empty = document.getElementById('data-quality-empty');
+            const wrap = document.getElementById('data-quality-wrap');
+            const body = document.getElementById('data-quality-body');
+            if (!count || !empty || !wrap || !body) return;
+            count.innerText = `${issues.length} registro${issues.length === 1 ? '' : 's'}`;
+            empty.classList.toggle('hidden', issues.length > 0);
+            wrap.classList.toggle('hidden', issues.length === 0);
+            body.innerHTML = issues.slice(0, 30).map(item => `
+                <tr class="border-b border-slate-800">
+                    <td class="p-3">${escapeHtml(item.origem)}</td>
+                    <td class="p-3 text-xs text-slate-400">${escapeHtml(item.data)}</td>
+                    <td class="p-3 font-bold text-orange-300">${escapeHtml(item.placa)}</td>
+                    <td class="p-3">${escapeHtml(item.campo)}</td>
+                    <td class="p-3 text-amber-300">${escapeHtml(item.motivo)}</td>
+                </tr>
+            `).join('');
+        }
         function isSafePhotoUrl(value) {
             try {
                 const url = new URL(String(value || ''));
@@ -942,7 +1091,7 @@
             const tbody = document.getElementById('checklists-table-body');
             
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="14" class="p-6 text-center text-slate-400">Nenhum checklist registrado.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="15" class="p-6 text-center text-slate-400">Nenhum checklist registrado.</td></tr>`;
                 return;
             }
 
@@ -956,6 +1105,7 @@
                     <td class="p-4">${getStatusBadge(c.pneus)}</td>
                     <td class="p-4">${getStatusBadge(c.luzes)}</td>
                     <td class="p-4 text-xs">${escapeHtml(c.combustivel || '-')}</td>
+                    <td class="p-4">${getStatusBadge(c.visibilidade)}</td>
                     <td class="p-4">${getStatusBadge(c.freios)}</td>
                     <td class="p-4">${getStatusBadge(c.equipamentos)}</td>
                     <td class="p-4">${getStatusBadge(c.cintos)}</td>
@@ -993,8 +1143,7 @@
                     <td class="p-4">${getOleoBadge(v.kmAtual, v.kmProximaTroca)}</td>
                     <td class="p-4 space-y-1 text-xs">
                         <div>IPVA: ${getDocBadge(v.dataIpva)}</div>
-                        <div>Insp: ${getDocBadge(v.dataInspecao)}</div>
-                        <div>Seguro: ${getDocBadge(v.dataSeguro)}</div>
+                        <div>Licenciamento: ${getDocBadge(v.dataLicenciamento)}</div>
                     </td>
                     <td class="p-4 text-center space-x-2 whitespace-nowrap">
                         <button onclick="openDossieModal('${v.placa}')" title="Dossiê Completo" class="text-xs bg-blue-600/20 text-blue-400 hover:bg-blue-600/30 border border-blue-500/40 px-2 py-1 rounded-lg transition"><i class="fa-solid fa-folder-open mr-1"></i> Dossiê</button>
@@ -1209,25 +1358,43 @@
             }
         }
 
-        function getDocBadge(dateStr) {
-            if (!dateStr) return `<span class="text-slate-500">-</span>`;
-            
-            const hoje = new Date();
-            const venc = new Date(dateStr);
-            if (Number.isNaN(venc.getTime())) return `<span class="text-slate-500">Data inválida</span>`;
-            const diffDias = Math.ceil((venc - hoje) / (1000 * 60 * 60 * 24));
-
-            const formatada = venc.toLocaleDateString('pt-BR');
-
-            if (diffDias > 30) {
-                return `<span class="text-emerald-400 font-medium">🟢 ${formatada}</span>`;
-            } else if (diffDias > 10) {
-                return `<span class="text-amber-400 font-bold">🟡 ${formatada} (${diffDias}d)</span>`;
-            } else if (diffDias >= 0) {
-                return `<span class="text-rose-400 font-bold">🔴 ${formatada} (${diffDias}d)</span>`;
-            } else {
-                return `<span class="text-rose-500 font-bold animate-pulse">🔴 VENCIDO (${formatada})</span>`;
+        function parseDocumentDate(value) {
+            const raw = String(value ?? '').trim();
+            if (!raw) return null;
+            let year, month, day;
+            let match = /^(\d{4})-(\d{2})-(\d{2})/.exec(raw);
+            if (match) [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
+            else {
+                match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(raw);
+                if (!match) return null;
+                [day, month, year] = [Number(match[1]), Number(match[2]), Number(match[3])];
             }
+            const date = new Date(year, month - 1, day, 12, 0, 0);
+            if (year < 2000 || year > 2100 || date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null;
+            return date;
+        }
+
+        function getDocBadge(dateValue) {
+            if (!String(dateValue ?? '').trim()) return `<span class="text-slate-500">Não informado</span>`;
+            const venc = parseDocumentDate(dateValue);
+            if (!venc) return `<span class="text-rose-400 font-semibold" title="Confira a data cadastrada">Data inválida</span>`;
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            const diaVenc = new Date(venc.getFullYear(), venc.getMonth(), venc.getDate());
+            const diffDias = Math.round((diaVenc - hoje) / 86400000);
+            const formatada = venc.toLocaleDateString('pt-BR');
+            if (diffDias < 0) return `<span class="text-rose-500 font-bold">🔴 VENCIDO (${formatada})</span>`;
+            if (diffDias <= 10) return `<span class="text-rose-400 font-bold">🔴 ${formatada} (${diffDias}d)</span>`;
+            if (diffDias <= 30) return `<span class="text-amber-400 font-bold">🟡 ${formatada} (${diffDias}d)</span>`;
+            return `<span class="text-emerald-400 font-medium">🟢 ${formatada}</span>`;
+        }
+
+        function documentDaysLeft(value) {
+            const due = parseDocumentDate(value);
+            if (!due) return null;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            return Math.round((new Date(due.getFullYear(), due.getMonth(), due.getDate()) - today) / 86400000);
         }
 
         function getOleoBadge(kmAtual, kmProximaTroca) {
@@ -1645,8 +1812,7 @@
                 kmAtual: parseInt(document.getElementById('kmAtual').value) || 0,
                 kmProximaTroca: parseInt(document.getElementById('kmProximaTroca').value) || (parseInt(document.getElementById('kmAtual').value) + 10000),
                 dataIpva: document.getElementById('dataIpva').value,
-                dataInspecao: document.getElementById('dataInspecao').value,
-                dataSeguro: document.getElementById('dataSeguro').value
+                dataLicenciamento: document.getElementById('dataLicenciamento').value
             };
 
             try {
@@ -1688,9 +1854,8 @@
             document.getElementById('status').value = vehicle.status;
             document.getElementById('kmAtual').value = vehicle.kmAtual || 0;
             document.getElementById('kmProximaTroca').value = vehicle.kmProximaTroca || 0;
-            document.getElementById('dataIpva').value = vehicle.dataIpva || '';
-            document.getElementById('dataInspecao').value = vehicle.dataInspecao || '';
-            document.getElementById('dataSeguro').value = vehicle.dataSeguro || '';
+            document.getElementById('dataIpva').value = String(vehicle.dataIpva || '').slice(0, 10);
+            document.getElementById('dataLicenciamento').value = String(vehicle.dataLicenciamento || '').slice(0, 10);
 
             switchTab('cadastro');
         }
@@ -1700,16 +1865,18 @@
         }
 
         function getStatusBadge(status) {
-            const isCritical = ['Crítico', 'Furado/Danificado', 'Manutenção', 'Em Manutenção', 'Deficiente'].includes(status);
-            const isWarning = ['Atenção', 'Gastos', 'Lâmpada Queimada', 'Em Uso', 'Em Rota', 'Reserva', 'Pedal Baixo/Ruído'].includes(status);
+            const value = String(status || '').trim();
+            if (!value) return `<span class="text-xs text-slate-500">Não registrado</span>`;
+            const isCritical = /^(?:Crítico|Deficiente|Furado\/Danificado|Manutenção|Em Manutenção)/i.test(value);
+            const isWarning = /^(?:Atenção|Gastos|Lâmpada Queimada|Em Uso|Em Rota|Reserva|Pedal Baixo\/Ruído)/i.test(value);
             
             if (isCritical) {
-                return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30">${escapeHtml(status)}</span>`;
+                return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-rose-500/20 text-rose-400 border border-rose-500/30">${escapeHtml(value)}</span>`;
             }
             if (isWarning) {
-                return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">${escapeHtml(status)}</span>`;
+                return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-400 border border-amber-500/30">${escapeHtml(value)}</span>`;
             }
-            return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">${escapeHtml(status || 'OK')}</span>`;
+            return `<span class="px-2.5 py-1 text-xs font-semibold rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">${escapeHtml(value)}</span>`;
         }
 
         function renderReports() {
@@ -1761,9 +1928,9 @@
                 if (/^[\\s]*[=+@\\-]/.test(text)) text = "'" + text;
                 return `"${text.replace(/"/g, '""')}"`;
             };
-            let csv = '\uFEFFData,Placa,Motorista,KM,Oleo_Agua,Pneus,Luzes,Combustivel,Freios,Equipamentos,Cintos,Limpeza,Observacao,Foto\r\n';
+        let csv = '\uFEFFData,Placa,Motorista,KM,Oleo_Agua,Pneus,Luzes,Combustivel,Visibilidade,Freios,Equipamentos,Cintos,Limpeza,Observacao,Foto\r\n';
             checklists.forEach(c => {
-                csv += [c.data,c.placa,c.motorista,c.km,c.oleo_agua,c.pneus,c.luzes,c.combustivel,c.freios,c.equipamentos,c.cintos,c.limpeza,c.obs,c.foto].map(csvCell).join(',') + '\r\n';
+            csv += [c.data,c.placa,c.motorista,c.km,c.oleo_agua,c.pneus,c.luzes,c.combustivel,c.visibilidade,c.freios,c.equipamentos,c.cintos,c.limpeza,c.obs,c.foto].map(csvCell).join(',') + '\r\n';
             });
 
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
