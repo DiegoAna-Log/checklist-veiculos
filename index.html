@@ -145,7 +145,7 @@
             <!-- FOTO DE AVARIA -->
             <div>
                 <label class="block text-xs font-semibold uppercase text-slate-400 mb-1"><i class="fa-solid fa-camera mr-1 text-orange-500"></i> Tirar Foto de Avaria (Opcional)</label>
-                <input type="file" id="foto-input" accept="image/*" capture="environment" onchange="previewImage(event)" class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700">
+                <input type="file" id="foto-input" accept="image/jpeg,image/png,image/webp" capture="environment" onchange="previewImage(event)" class="block w-full text-xs text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700">
                 <img id="image-preview" class="mt-3 rounded-lg max-h-40 hidden border border-slate-800 mx-auto" alt="Pré-visualização">
             </div>
 
@@ -225,8 +225,7 @@
             const invalid = raw === '' || !Number.isInteger(kmDigitado) || kmDigitado < ultimoKmRegistrado;
             const kmError = document.getElementById('km-error');
             const submitBtn = document.getElementById('submit-btn');
-            kmError.classList.toggle('hidden', !invalid || raw === '');
-            if (raw !== '' && invalid) kmError.classList.remove('hidden');
+            kmError.classList.toggle('hidden', raw === '' || !invalid);
             submitBtn.disabled = !driverToken || invalid;
             submitBtn.classList.toggle('opacity-50', submitBtn.disabled);
             submitBtn.classList.toggle('cursor-not-allowed', submitBtn.disabled);
@@ -243,7 +242,7 @@
                 fotoPromise = Promise.resolve();
                 return;
             }
-            if (!file.type.startsWith('image/')) {
+            if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
                 event.target.value = '';
                 fotoSelecionada = false;
                 alert('Selecione um arquivo de imagem.');
@@ -271,12 +270,17 @@
                     const img = new Image();
                     img.onerror = () => reject(new Error('Arquivo de imagem inválido.'));
                     img.onload = () => {
+                        if (!img.width || !img.height || img.width * img.height > 40000000) {
+                            return reject(new Error('A imagem é grande ou inválida. Tire outra foto.'));
+                        }
                         const maxSide = 1600;
                         const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
                         const canvas = document.createElement('canvas');
                         canvas.width = Math.max(1, Math.round(img.width * scale));
                         canvas.height = Math.max(1, Math.round(img.height * scale));
-                        canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+                        const context = canvas.getContext('2d');
+                        if (!context || typeof canvas.toBlob !== 'function') return reject(new Error('Este navegador não consegue processar a foto.'));
+                        context.drawImage(img, 0, 0, canvas.width, canvas.height);
                         canvas.toBlob(blob => {
                             if (!blob) return reject(new Error('Não foi possível comprimir a foto.'));
                             if (blob.size > 4 * 1024 * 1024) return reject(new Error('A foto continua grande. Tire outra com menor resolução.'));
